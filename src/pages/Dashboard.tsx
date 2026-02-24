@@ -2,15 +2,21 @@ import { Users, UserCheck, GraduationCap, TrendingUp, Trophy, Target } from 'luc
 import { AppLayout } from '@/components/AppLayout';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
-import { mockReferrals, mockStats, mockRanking } from '@/data/mockData';
+import { useMyReferrals, useMyStats, useRanking } from '@/hooks/useReferrals';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
-  const recentReferrals = mockReferrals.slice(0, 3);
+  const { profile } = useAuth();
+  const { data: referrals = [] } = useMyReferrals();
+  const { data: stats } = useMyStats();
+  const { data: ranking = [] } = useRanking();
+
+  const recentReferrals = referrals.slice(0, 3);
+  const myRank = ranking.findIndex(r => r.name === profile?.full_name) + 1;
 
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -18,75 +24,45 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <StatCard
-            title="Total de Indicações"
-            value={mockStats.total_referrals}
-            icon={Users}
-          />
-          <StatCard
-            title="Inscritos"
-            value={mockStats.total_inscribed}
-            subtitle={`${mockStats.conversion_rate}% de conversão`}
-            icon={UserCheck}
-          />
-          <StatCard
-            title="Matriculados"
-            value={mockStats.total_enrolled}
-            icon={GraduationCap}
-          />
-          <StatCard
-            title="Taxa de Conversão"
-            value={`${mockStats.conversion_rate}%`}
-            icon={TrendingUp}
-          />
-          <StatCard
-            title="Pontuação"
-            value={mockStats.points}
-            subtitle="pts acumulados"
-            icon={Target}
-            highlight
-          />
-          <StatCard
-            title="Sua Posição"
-            value={`#${mockStats.rank}`}
-            subtitle="no ranking geral"
-            icon={Trophy}
-          />
+          <StatCard title="Total de Indicações" value={stats?.total_referrals ?? 0} icon={Users} />
+          <StatCard title="Inscritos" value={stats?.total_inscribed ?? 0} subtitle={`${stats?.conversion_rate ?? 0}% de conversão`} icon={UserCheck} />
+          <StatCard title="Matriculados" value={stats?.total_enrolled ?? 0} icon={GraduationCap} />
+          <StatCard title="Taxa de Conversão" value={`${stats?.conversion_rate ?? 0}%`} icon={TrendingUp} />
+          <StatCard title="Pontuação" value={stats?.points ?? 0} subtitle="pts acumulados" icon={Target} highlight />
+          <StatCard title="Sua Posição" value={myRank > 0 ? `#${myRank}` : '-'} subtitle="no ranking geral" icon={Trophy} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent referrals */}
           <div className="bg-card rounded-xl border border-border shadow-card">
             <div className="px-5 py-4 border-b border-border">
               <h2 className="text-sm font-semibold text-foreground">Indicações Recentes</h2>
             </div>
             <div className="divide-y divide-border">
+              {recentReferrals.length === 0 && (
+                <p className="px-5 py-6 text-sm text-muted-foreground text-center">Nenhuma indicação ainda</p>
+              )}
               {recentReferrals.map((referral) => (
                 <div key={referral.id} className="px-5 py-3.5 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-foreground">{referral.referred_name}</p>
                     <p className="text-xs text-muted-foreground">{referral.course}</p>
                   </div>
-                  <StatusBadge status={referral.status} />
+                  <StatusBadge status={referral.status as any} />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Mini ranking */}
           <div className="bg-card rounded-xl border border-border shadow-card">
             <div className="px-5 py-4 border-b border-border">
               <h2 className="text-sm font-semibold text-foreground">Top 5 Headhunters</h2>
             </div>
             <div className="divide-y divide-border">
-              {mockRanking.map((user) => (
+              {ranking.slice(0, 5).map((user) => (
                 <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
-                  <div className={`
-                    flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
-                    ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}
-                  `}>
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
+                    ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                     {user.rank}
                   </div>
                   <div className="flex-1 min-w-0">

@@ -1,22 +1,21 @@
 import { Trophy, Medal, Award } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
-import { mockRanking } from '@/data/mockData';
+import { useRanking } from '@/hooks/useReferrals';
 import { POINTS_CONFIG } from '@/types/referral';
 
 const podiumIcons = [Trophy, Medal, Award];
 
 const Ranking = () => {
+  const { data: ranking = [], isLoading } = useRanking();
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">Ranking de Indicações</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Os melhores headhunters da Audens Edu
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">Os melhores headhunters da Audens Edu</p>
         </div>
 
-        {/* Points info */}
         <div className="bg-card rounded-xl border border-border shadow-card p-5 mb-6">
           <h3 className="text-sm font-semibold text-foreground mb-3">Como funcionam os pontos</h3>
           <div className="flex flex-wrap gap-4">
@@ -35,62 +34,61 @@ const Ranking = () => {
           </div>
         </div>
 
-        {/* Podium (top 3) */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {mockRanking.slice(0, 3).map((user, i) => {
-            const Icon = podiumIcons[i];
-            const order = i === 0 ? 'order-2' : i === 1 ? 'order-1' : 'order-3';
-            return (
-              <div
-                key={user.rank}
-                className={`${order} bg-card rounded-xl border border-border shadow-card p-4 text-center
-                  ${i === 0 ? 'ring-2 ring-primary shadow-elevated' : ''}
-                `}
-              >
-                <div className={`
-                  mx-auto flex items-center justify-center w-12 h-12 rounded-full mb-3
-                  ${i === 0 ? 'gradient-primary' : 'bg-muted'}
-                `}>
-                  <Icon className={`w-5 h-5 ${i === 0 ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                </div>
-                <p className="text-xs text-muted-foreground">#{user.rank}</p>
-                <p className="text-sm font-bold text-foreground mt-1 truncate">{user.name}</p>
-                <p className="text-xl font-bold text-primary mt-1">{user.points}</p>
-                <p className="text-xs text-muted-foreground">pontos</p>
-                <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
-                </div>
+        {isLoading ? (
+          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+        ) : ranking.length === 0 ? (
+          <div className="bg-card rounded-xl border border-border shadow-card p-8 text-center">
+            <p className="text-muted-foreground">Nenhuma indicação registrada ainda.</p>
+          </div>
+        ) : (
+          <>
+            {ranking.length >= 3 && (
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {ranking.slice(0, 3).map((user, i) => {
+                  const Icon = podiumIcons[i];
+                  const order = i === 0 ? 'order-2' : i === 1 ? 'order-1' : 'order-3';
+                  return (
+                    <div key={user.rank} className={`${order} bg-card rounded-xl border border-border shadow-card p-4 text-center ${i === 0 ? 'ring-2 ring-primary shadow-elevated' : ''}`}>
+                      <div className={`mx-auto flex items-center justify-center w-12 h-12 rounded-full mb-3 ${i === 0 ? 'gradient-primary' : 'bg-muted'}`}>
+                        <Icon className={`w-5 h-5 ${i === 0 ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                      </div>
+                      <p className="text-xs text-muted-foreground">#{user.rank}</p>
+                      <p className="text-sm font-bold text-foreground mt-1 truncate">{user.name}</p>
+                      <p className="text-xl font-bold text-primary mt-1">{user.points}</p>
+                      <p className="text-xs text-muted-foreground">pontos</p>
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
+            )}
 
-        {/* Full list */}
-        <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="px-5 py-4 border-b border-border">
-            <h2 className="text-sm font-semibold text-foreground">Ranking Completo</h2>
-          </div>
-          <div className="divide-y divide-border">
-            {mockRanking.map((user) => (
-              <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
-                <div className={`
-                  flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0
-                  ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}
-                `}>
-                  {user.rank}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-primary">{user.points}</p>
-                  <p className="text-xs text-muted-foreground">pontos</p>
-                </div>
+            <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
+              <div className="px-5 py-4 border-b border-border">
+                <h2 className="text-sm font-semibold text-foreground">Ranking Completo</h2>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="divide-y divide-border">
+                {ranking.map((user) => (
+                  <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                      {user.rank}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-primary">{user.points}</p>
+                      <p className="text-xs text-muted-foreground">pontos</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </AppLayout>
   );

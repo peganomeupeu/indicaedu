@@ -1,24 +1,48 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Mail, Lock, ArrowRight } from 'lucide-react';
+import { GraduationCap, Mail, Lock, ArrowRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const { signIn, signUp, user } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Redirect if already logged in
+  if (user) {
+    navigate('/dashboard', { replace: true });
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Integrate with auth
-    setTimeout(() => {
+
+    if (isSignUp) {
+      const { error } = await signUp(email, password, fullName);
       setLoading(false);
-      navigate('/dashboard');
-    }, 800);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Conta criada! Verifique seu e-mail para confirmar o cadastro.');
+      }
+    } else {
+      const { error } = await signIn(email, password);
+      setLoading(false);
+      if (error) {
+        toast.error('E-mail ou senha inválidos.');
+      } else {
+        navigate('/dashboard');
+      }
+    }
   };
 
   return (
@@ -76,12 +100,33 @@ const Login = () => {
             </div>
           </div>
 
-          <h2 className="text-xl font-bold text-foreground mb-1">Bem-vindo de volta!</h2>
+          <h2 className="text-xl font-bold text-foreground mb-1">
+            {isSignUp ? 'Crie sua conta' : 'Bem-vindo de volta!'}
+          </h2>
           <p className="text-sm text-muted-foreground mb-8">
-            Entre com seu e-mail corporativo para acessar a plataforma.
+            {isSignUp
+              ? 'Preencha seus dados para acessar a plataforma.'
+              : 'Entre com seu e-mail corporativo para acessar a plataforma.'}
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-sm font-medium">Nome completo</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    placeholder="Seu nome completo"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">E-mail corporativo</Label>
               <div className="relative">
@@ -110,6 +155,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
+                  minLength={6}
                 />
               </div>
             </div>
@@ -119,10 +165,18 @@ const Login = () => {
               className="w-full gradient-primary text-primary-foreground font-semibold h-11 gap-2"
               disabled={loading}
             >
-              {loading ? 'Entrando...' : 'Entrar na plataforma'}
+              {loading ? (isSignUp ? 'Criando conta...' : 'Entrando...') : (isSignUp ? 'Criar conta' : 'Entrar na plataforma')}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </Button>
           </form>
+
+          <button
+            type="button"
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="mt-4 w-full text-center text-sm text-primary hover:underline"
+          >
+            {isSignUp ? 'Já tem conta? Faça login' : 'Não tem conta? Cadastre-se'}
+          </button>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
             Acesso restrito a colaboradores da Audens
