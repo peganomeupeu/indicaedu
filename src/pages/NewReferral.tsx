@@ -8,11 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { COURSES, INTEREST_LABELS, InterestLevel } from '@/types/referral';
+import { useCreateReferral } from '@/hooks/useReferrals';
 import { toast } from 'sonner';
 
 const NewReferral = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const createReferral = useCreateReferral();
   const [form, setForm] = useState({
     referred_name: '',
     referred_email: '',
@@ -30,15 +31,24 @@ const NewReferral = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // TODO: Save to database
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('Indicação registrada com sucesso!', {
-        description: `${form.referred_name} foi indicado para ${form.course}`,
-      });
-      navigate('/indicacoes');
-    }, 600);
+    if (!form.course || !form.interest_level) {
+      toast.error('Preencha todos os campos obrigatórios.');
+      return;
+    }
+    createReferral.mutate(
+      { ...form, interest_level: form.interest_level as string },
+      {
+        onSuccess: () => {
+          toast.success('Indicação registrada com sucesso!', {
+            description: `${form.referred_name} foi indicado para ${form.course}`,
+          });
+          navigate('/indicacoes');
+        },
+        onError: (err) => {
+          toast.error('Erro ao registrar indicação: ' + (err as Error).message);
+        },
+      }
+    );
   };
 
   return (
@@ -55,82 +65,48 @@ const NewReferral = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-card rounded-xl border border-border shadow-card p-6 space-y-6">
-          {/* Personal data */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-4">Dados do Indicado</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2 space-y-2">
                 <Label>Nome completo *</Label>
-                <Input
-                  placeholder="Nome completo do indicado"
-                  value={form.referred_name}
-                  onChange={(e) => updateField('referred_name', e.target.value)}
-                  required
-                />
+                <Input placeholder="Nome completo do indicado" value={form.referred_name} onChange={(e) => updateField('referred_name', e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label>E-mail *</Label>
-                <Input
-                  type="email"
-                  placeholder="email@empresa.com"
-                  value={form.referred_email}
-                  onChange={(e) => updateField('referred_email', e.target.value)}
-                  required
-                />
+                <Input type="email" placeholder="email@empresa.com" value={form.referred_email} onChange={(e) => updateField('referred_email', e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label>Telefone / WhatsApp *</Label>
-                <Input
-                  placeholder="(11) 99999-9999"
-                  value={form.referred_phone}
-                  onChange={(e) => updateField('referred_phone', e.target.value)}
-                  required
-                />
+                <Input placeholder="(11) 99999-9999" value={form.referred_phone} onChange={(e) => updateField('referred_phone', e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label>Empresa atual *</Label>
-                <Input
-                  placeholder="Nome da empresa"
-                  value={form.referred_company}
-                  onChange={(e) => updateField('referred_company', e.target.value)}
-                  required
-                />
+                <Input placeholder="Nome da empresa" value={form.referred_company} onChange={(e) => updateField('referred_company', e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label>Cargo atual *</Label>
-                <Input
-                  placeholder="Cargo do indicado"
-                  value={form.referred_position}
-                  onChange={(e) => updateField('referred_position', e.target.value)}
-                  required
-                />
+                <Input placeholder="Cargo do indicado" value={form.referred_position} onChange={(e) => updateField('referred_position', e.target.value)} required />
               </div>
             </div>
           </div>
 
-          {/* Course info */}
           <div className="border-t border-border pt-6">
             <h3 className="text-sm font-semibold text-foreground mb-4">Curso e Interesse</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Curso indicado *</Label>
                 <Select value={form.course} onValueChange={(v) => updateField('course', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o curso" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecione o curso" /></SelectTrigger>
                   <SelectContent>
-                    {COURSES.map(course => (
-                      <SelectItem key={course} value={course}>{course}</SelectItem>
-                    ))}
+                    {COURSES.map(course => (<SelectItem key={course} value={course}>{course}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Nível de interesse *</Label>
                 <Select value={form.interest_level} onValueChange={(v) => updateField('interest_level', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     {(Object.entries(INTEREST_LABELS) as [InterestLevel, string][]).map(([key, label]) => (
                       <SelectItem key={key} value={key}>{label}</SelectItem>
@@ -140,24 +116,15 @@ const NewReferral = () => {
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label>Observações</Label>
-                <Textarea
-                  placeholder="Adicione informações relevantes sobre o indicado..."
-                  value={form.notes}
-                  onChange={(e) => updateField('notes', e.target.value)}
-                  rows={3}
-                />
+                <Textarea placeholder="Adicione informações relevantes sobre o indicado..." value={form.notes} onChange={(e) => updateField('notes', e.target.value)} rows={3} />
               </div>
             </div>
           </div>
 
           <div className="flex justify-end pt-2">
-            <Button
-              type="submit"
-              className="gradient-primary text-primary-foreground font-semibold gap-2 h-11 px-8"
-              disabled={loading}
-            >
-              {loading ? 'Registrando...' : 'Registrar Indicação'}
-              {!loading && <Send className="w-4 h-4" />}
+            <Button type="submit" className="gradient-primary text-primary-foreground font-semibold gap-2 h-11 px-8" disabled={createReferral.isPending}>
+              {createReferral.isPending ? 'Registrando...' : 'Registrar Indicação'}
+              {!createReferral.isPending && <Send className="w-4 h-4" />}
             </Button>
           </div>
         </form>
