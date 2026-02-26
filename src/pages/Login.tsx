@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Login = () => {
@@ -13,6 +14,7 @@ const Login = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
 
@@ -22,9 +24,32 @@ const Login = () => {
     return null;
   }
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error('Digite seu e-mail para recuperar a senha.');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error('Erro ao enviar e-mail de recuperação.');
+    } else {
+      toast.success('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+      setForgotPassword(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (forgotPassword) {
+      await handleForgotPassword();
+      return;
+    }
 
     if (isSignUp) {
       const { error } = await signUp(email, password, fullName);
@@ -101,16 +126,18 @@ const Login = () => {
           </div>
 
           <h2 className="text-xl font-bold text-foreground mb-1">
-            {isSignUp ? 'Crie sua conta' : 'Bem-vindo de volta!'}
+            {forgotPassword ? 'Recuperar senha' : isSignUp ? 'Crie sua conta' : 'Bem-vindo de volta!'}
           </h2>
           <p className="text-sm text-muted-foreground mb-8">
-            {isSignUp
-              ? 'Preencha seus dados para acessar a plataforma.'
-              : 'Entre com seu e-mail corporativo para acessar a plataforma.'}
+            {forgotPassword
+              ? 'Digite seu e-mail para receber o link de recuperação.'
+              : isSignUp
+                ? 'Preencha seus dados para acessar a plataforma.'
+                : 'Entre com seu e-mail corporativo para acessar a plataforma.'}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {isSignUp && (
+            {isSignUp && !forgotPassword && (
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm font-medium">Nome completo</Label>
                 <div className="relative">
@@ -143,40 +170,64 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                  minLength={6}
-                />
+            {!forgotPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                    minLength={6}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <Button 
               type="submit" 
               className="w-full gradient-primary text-primary-foreground font-semibold h-11 gap-2"
               disabled={loading}
             >
-              {loading ? (isSignUp ? 'Criando conta...' : 'Entrando...') : (isSignUp ? 'Criar conta' : 'Entrar na plataforma')}
+              {loading
+                ? (forgotPassword ? 'Enviando...' : isSignUp ? 'Criando conta...' : 'Entrando...')
+                : (forgotPassword ? 'Enviar link de recuperação' : isSignUp ? 'Criar conta' : 'Entrar na plataforma')}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </Button>
           </form>
 
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="mt-4 w-full text-center text-sm text-primary hover:underline"
-          >
-            {isSignUp ? 'Já tem conta? Faça login' : 'Não tem conta? Cadastre-se'}
-          </button>
+          {!isSignUp && !forgotPassword && (
+            <button
+              type="button"
+              onClick={() => setForgotPassword(true)}
+              className="mt-3 w-full text-center text-sm text-muted-foreground hover:text-primary hover:underline"
+            >
+              Esqueceu sua senha?
+            </button>
+          )}
+
+          {forgotPassword ? (
+            <button
+              type="button"
+              onClick={() => setForgotPassword(false)}
+              className="mt-4 w-full text-center text-sm text-primary hover:underline"
+            >
+              Voltar ao login
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(!isSignUp); setForgotPassword(false); }}
+              className="mt-4 w-full text-center text-sm text-primary hover:underline"
+            >
+              {isSignUp ? 'Já tem conta? Faça login' : 'Não tem conta? Cadastre-se'}
+            </button>
+          )}
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
             Acesso restrito a colaboradores da Audens
