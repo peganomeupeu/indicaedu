@@ -3,10 +3,13 @@ import { AppLayout } from '@/components/AppLayout';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useAllReferrals, useRanking, useUpdateReferralStatus } from '@/hooks/useReferrals';
-import { COURSES, STATUS_LABELS, ReferralStatus } from '@/types/referral';
-import { Users, UserCheck, GraduationCap, BarChart3, Download } from 'lucide-react';
+import { useCourses, useAllCourses, useCreateCourse, useToggleCourse, useDeleteCourse } from '@/hooks/useCourses';
+import { STATUS_LABELS, ReferralStatus } from '@/types/referral';
+import { Users, UserCheck, GraduationCap, BarChart3, Download, Plus, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -14,9 +17,15 @@ import { toast } from 'sonner';
 const Admin = () => {
   const [filterCourse, setFilterCourse] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [newCourseName, setNewCourseName] = useState('');
   const { data: referrals = [], isLoading } = useAllReferrals();
   const { data: ranking = [] } = useRanking();
+  const { data: activeCourses = [] } = useCourses();
+  const { data: allCourses = [] } = useAllCourses();
   const updateStatus = useUpdateReferralStatus();
+  const createCourse = useCreateCourse();
+  const toggleCourse = useToggleCourse();
+  const deleteCourse = useDeleteCourse();
 
   const filtered = referrals.filter(r => {
     if (filterCourse !== 'all' && r.course !== filterCourse) return false;
@@ -79,7 +88,7 @@ const Admin = () => {
             <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrar por curso" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os cursos</SelectItem>
-              {COURSES.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+              {activeCourses.map(c => (<SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>))}
             </SelectContent>
           </Select>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -139,6 +148,66 @@ const Admin = () => {
             </div>
           </div>
         )}
+
+        {/* Course Management */}
+        <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden mb-8">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-sm font-semibold text-foreground">Gerenciar Cursos</h2>
+          </div>
+          <div className="p-5 space-y-3">
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newCourseName.trim()) return;
+                createCourse.mutate(newCourseName.trim(), {
+                  onSuccess: () => { toast.success('Curso adicionado!'); setNewCourseName(''); },
+                  onError: (err) => toast.error('Erro: ' + (err as Error).message),
+                });
+              }}
+            >
+              <Input
+                placeholder="Nome do novo curso"
+                value={newCourseName}
+                onChange={(e) => setNewCourseName(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit" size="sm" className="gap-1 shrink-0" disabled={createCourse.isPending}>
+                <Plus className="w-4 h-4" /> Adicionar
+              </Button>
+            </form>
+            <div className="divide-y divide-border">
+              {allCourses.map((course) => (
+                <div key={course.id} className="flex items-center gap-3 py-3">
+                  <Switch
+                    checked={course.active}
+                    onCheckedChange={(checked) =>
+                      toggleCourse.mutate({ id: course.id, active: checked }, {
+                        onSuccess: () => toast.success(checked ? 'Curso ativado' : 'Curso desativado'),
+                      })
+                    }
+                  />
+                  <span className={`flex-1 text-sm ${course.active ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
+                    {course.name}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() =>
+                      deleteCourse.mutate(course.id, {
+                        onSuccess: () => toast.success('Curso removido'),
+                        onError: (err) => toast.error('Erro: ' + (err as Error).message),
+                      })
+                    }
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
