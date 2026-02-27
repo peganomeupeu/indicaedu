@@ -7,13 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { COURSES, INTEREST_LABELS, InterestLevel } from '@/types/referral';
+import { INTEREST_LABELS, InterestLevel } from '@/types/referral';
 import { useCreateReferral } from '@/hooks/useReferrals';
+import { useCourses } from '@/hooks/useCourses';
 import { toast } from 'sonner';
 
 const NewReferral = () => {
   const navigate = useNavigate();
   const createReferral = useCreateReferral();
+  const { data: courses = [] } = useCourses();
   const [form, setForm] = useState({
     referred_name: '',
     referred_email: '',
@@ -99,7 +101,7 @@ const NewReferral = () => {
                 <Select value={form.course} onValueChange={(v) => updateField('course', v)}>
                   <SelectTrigger><SelectValue placeholder="Selecione o curso" /></SelectTrigger>
                   <SelectContent>
-                    {COURSES.map(course => (<SelectItem key={course} value={course}>{course}</SelectItem>))}
+                    {courses.map(c => (<SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
