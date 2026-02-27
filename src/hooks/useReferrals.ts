@@ -116,35 +116,25 @@ export function useMyStats() {
   });
 }
 
-export function useRanking() {
+export function useRanking(month?: number, year?: number) {
   return useQuery({
-    queryKey: ['ranking'],
+    queryKey: ['ranking', month, year],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('referrals')
-        .select('headhunter_id, status, profiles!referrals_headhunter_id_fkey(full_name)');
-      if (error) throw error;
-
-      const map: Record<string, { name: string; referrals: number; enrolled: number; points: number }> = {};
-      data?.forEach(r => {
-        const hid = r.headhunter_id;
-        if (!map[hid]) {
-          map[hid] = { name: (r.profiles as any)?.full_name ?? '', referrals: 0, enrolled: 0, points: 0 };
-        }
-        map[hid].referrals++;
-        if (r.status === 'matriculado') {
-          map[hid].enrolled++;
-          map[hid].points += POINTS_CONFIG.indicado + POINTS_CONFIG.inscrito + POINTS_CONFIG.matriculado;
-        } else if (r.status === 'inscrito') {
-          map[hid].points += POINTS_CONFIG.indicado + POINTS_CONFIG.inscrito;
-        } else {
-          map[hid].points += POINTS_CONFIG.indicado;
-        }
+      const { data, error } = await supabase.rpc('get_ranking', {
+        p_month: month ?? null,
+        p_year: year ?? null,
       });
-
-      return Object.values(map)
-        .sort((a, b) => b.points - a.points)
-        .map((u, i) => ({ ...u, rank: i + 1 }));
+      if (error) throw error;
+      return (data ?? []).map((u: any, i: number) => ({
+        name: u.headhunter_name,
+        referrals: Number(u.total_referrals),
+        enrolled: Number(u.total_enrolled),
+        points:
+          Number(u.total_referrals) * POINTS_CONFIG.indicado +
+          Number(u.total_inscribed) * POINTS_CONFIG.inscrito +
+          Number(u.total_enrolled) * POINTS_CONFIG.matriculado,
+        rank: i + 1,
+      }));
     },
   });
 }
