@@ -1,12 +1,25 @@
+import { useState } from 'react';
 import { Trophy, Medal, Award } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { useRanking } from '@/hooks/useReferrals';
 import { POINTS_CONFIG } from '@/types/referral';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const MONTHS = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth() + 1;
+const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 const podiumIcons = [Trophy, Medal, Award];
 
 const Ranking = () => {
-  const { data: ranking = [], isLoading } = useRanking();
+  const [month, setMonth] = useState<number>(currentMonth);
+  const [year, setYear] = useState<number>(currentYear);
+  const { data: ranking = [], isLoading } = useRanking(month, year);
 
   return (
     <AppLayout>
@@ -14,6 +27,25 @@ const Ranking = () => {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">Ranking de Indicações</h1>
           <p className="text-sm text-muted-foreground mt-1">Os melhores headhunters da Audens Edu</p>
+        </div>
+
+        <div className="flex flex-wrap gap-3 mb-6">
+          <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {MONTHS.map((m, i) => (
+                <SelectItem key={i + 1} value={String(i + 1)}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {YEARS.map(y => (
+                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="bg-card rounded-xl border border-border shadow-card p-5 mb-6">
@@ -38,7 +70,7 @@ const Ranking = () => {
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
         ) : ranking.length === 0 ? (
           <div className="bg-card rounded-xl border border-border shadow-card p-8 text-center">
-            <p className="text-muted-foreground">Nenhuma indicação registrada ainda.</p>
+            <p className="text-muted-foreground">Nenhuma indicação registrada neste período.</p>
           </div>
         ) : (
           <>

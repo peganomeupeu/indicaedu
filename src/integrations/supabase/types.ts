@@ -153,6 +153,15 @@ export type Database = {
     }
     Functions: {
       get_my_profile_id: { Args: never; Returns: string }
+      get_ranking: {
+        Args: { p_month?: number; p_year?: number }
+        Returns: {
+          headhunter_name: string
+          total_enrolled: number
+          total_inscribed: number
+          total_referrals: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
