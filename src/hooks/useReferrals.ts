@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { POINTS_CONFIG } from '@/types/referral';
+import { POINTS_CONFIG, ReferralStatus } from '@/types/referral';
 
 export function useMyReferrals() {
   const { profile } = useAuth();
@@ -104,16 +104,15 @@ export function useMyStats(month?: number, year?: number) {
       const { data, error } = await query;
       if (error) throw error;
       const total = data.length;
-      const inscribed = data.filter(r => r.status === 'inscrito' || r.status === 'matriculado').length;
-      const enrolled = data.filter(r => r.status === 'matriculado').length;
+      const qualified = data.filter(r => r.status === 'qualificado' || r.status === 'inscrito' || r.status === 'nao_convertido').length;
+      const enrolled = data.filter(r => r.status === 'inscrito').length;
       const points = data.reduce((acc, r) => {
-        if (r.status === 'matriculado') return acc + POINTS_CONFIG.indicado + POINTS_CONFIG.inscrito + POINTS_CONFIG.matriculado;
-        if (r.status === 'inscrito') return acc + POINTS_CONFIG.indicado + POINTS_CONFIG.inscrito;
-        return acc + POINTS_CONFIG.indicado;
+        const status = r.status as ReferralStatus;
+        return acc + (POINTS_CONFIG[status] ?? 0);
       }, 0);
       return {
         total_referrals: total,
-        total_inscribed: inscribed,
+        total_inscribed: qualified,
         total_enrolled: enrolled,
         conversion_rate: total > 0 ? Math.round((enrolled / total) * 100) : 0,
         points,
@@ -135,11 +134,12 @@ export function useRanking(month?: number, year?: number) {
         name: u.headhunter_name,
         referrals: Number(u.total_referrals),
         enrolled: Number(u.total_enrolled),
+        qualified: Number(u.total_inscribed),
         avatar_url: u.avatar_url ?? null,
         points:
-          Number(u.total_referrals) * POINTS_CONFIG.indicado +
-          Number(u.total_inscribed) * POINTS_CONFIG.inscrito +
-          Number(u.total_enrolled) * POINTS_CONFIG.matriculado,
+          (Number(u.total_referrals) - Number(u.total_inscribed) - Number(u.total_enrolled)) * POINTS_CONFIG.indicado +
+          Number(u.total_inscribed) * POINTS_CONFIG.qualificado +
+          Number(u.total_enrolled) * POINTS_CONFIG.inscrito,
         rank: i + 1,
       }));
     },

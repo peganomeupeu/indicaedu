@@ -57,17 +57,17 @@ const Ranking = () => {
         <div className="bg-card rounded-xl border border-border shadow-card p-5 mb-6">
           <h3 className="text-sm font-semibold text-foreground mb-3">Como funcionam os pontos</h3>
           <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-info" />
-              <span className="text-sm text-muted-foreground">Indicação: <strong className="text-foreground">{POINTS_CONFIG.indicado} pts</strong></span>
+              <span className="text-sm text-muted-foreground">Indicado: <strong className="text-foreground">{POINTS_CONFIG.indicado} pts</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-warning" />
-              <span className="text-sm text-muted-foreground">Inscrição: <strong className="text-foreground">{POINTS_CONFIG.inscrito} pts</strong></span>
+              <span className="text-sm text-muted-foreground">Qualificado: <strong className="text-foreground">{POINTS_CONFIG.qualificado} pts</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-success" />
-              <span className="text-sm text-muted-foreground">Matrícula: <strong className="text-foreground">{POINTS_CONFIG.matriculado} pts</strong></span>
+              <span className="text-sm text-muted-foreground">Inscrito: <strong className="text-foreground">{POINTS_CONFIG.inscrito} pts</strong></span>
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@ const Ranking = () => {
                       <p className="text-xl font-bold text-primary mt-1">{user.points}</p>
                       <p className="text-xs text-muted-foreground">pontos</p>
                       <div className="mt-3 pt-3 border-t border-border">
-                        <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
+                         <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} inscritos</p>
                       </div>
                     </div>
                   );
@@ -127,7 +127,7 @@ const Ranking = () => {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
+                        <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} inscritos</p>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-primary">{user.points}</p>

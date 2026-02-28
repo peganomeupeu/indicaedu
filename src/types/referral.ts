@@ -1,9 +1,9 @@
 export type ReferralStatus = 
   | 'indicado' 
-  | 'contato_realizado' 
+  | 'qualificado' 
   | 'inscrito' 
-  | 'matriculado' 
-  | 'nao_convertido';
+  | 'nao_convertido'
+  | 'nao_qualificado';
 
 export type InterestLevel = 'baixo' | 'medio' | 'alto';
 
@@ -34,18 +34,18 @@ export interface HeadhunterStats {
 
 export const STATUS_LABELS: Record<ReferralStatus, string> = {
   indicado: 'Indicado',
-  contato_realizado: 'Contato Realizado',
+  qualificado: 'Qualificado',
   inscrito: 'Inscrito',
-  matriculado: 'Matriculado',
   nao_convertido: 'Não Convertido',
+  nao_qualificado: 'Não Qualificado',
 };
 
 export const STATUS_COLORS: Record<ReferralStatus, string> = {
   indicado: 'bg-info text-info-foreground',
-  contato_realizado: 'bg-warning text-warning-foreground',
-  inscrito: 'bg-accent text-accent-foreground',
-  matriculado: 'bg-success text-success-foreground',
-  nao_convertido: 'bg-destructive text-destructive-foreground',
+  qualificado: 'bg-warning text-warning-foreground',
+  inscrito: 'bg-success text-success-foreground',
+  nao_convertido: 'bg-accent text-accent-foreground',
+  nao_qualificado: 'bg-destructive text-destructive-foreground',
 };
 
 export const INTEREST_LABELS: Record<InterestLevel, string> = {
@@ -65,10 +65,12 @@ export const COURSES = [
   'Coaching Executivo',
 ];
 
-export const POINTS_CONFIG = {
+export const POINTS_CONFIG: Record<ReferralStatus, number> = {
   indicado: 10,
-  inscrito: 30,
-  matriculado: 50,
+  qualificado: 30,
+  inscrito: 50,
+  nao_convertido: 30,
+  nao_qualificado: 10,
 };
 
 export const POSITION_OPTIONS = [

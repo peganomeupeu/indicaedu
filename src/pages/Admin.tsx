@@ -56,8 +56,8 @@ const Admin = () => {
   });
 
   const totalReferrals = referrals.length;
-  const totalInscribed = referrals.filter(r => r.status === 'inscrito' || r.status === 'matriculado').length;
-  const totalEnrolled = referrals.filter(r => r.status === 'matriculado').length;
+  const totalQualified = referrals.filter(r => r.status === 'qualificado' || r.status === 'inscrito' || r.status === 'nao_convertido').length;
+  const totalEnrolled = referrals.filter(r => r.status === 'inscrito').length;
 
   const handleStatusChange = (id: string, newStatus: string) => {
     updateStatus.mutate(
@@ -138,8 +138,8 @@ const Admin = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard title="Total Indicações" value={totalReferrals} icon={Users} />
-          <StatCard title="Inscritos" value={totalInscribed} icon={UserCheck} />
-          <StatCard title="Matriculados" value={totalEnrolled} icon={GraduationCap} highlight />
+          <StatCard title="Qualificados" value={totalQualified} icon={UserCheck} />
+          <StatCard title="Inscritos" value={totalEnrolled} icon={GraduationCap} highlight />
           <StatCard title="Conversão" value={`${totalReferrals > 0 ? Math.round((totalEnrolled / totalReferrals) * 100) : 0}%`} icon={BarChart3} />
         </div>
 
