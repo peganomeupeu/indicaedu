@@ -86,16 +86,22 @@ export function useUpdateReferralStatus() {
   });
 }
 
-export function useMyStats() {
+export function useMyStats(month?: number, year?: number) {
   const { profile } = useAuth();
   return useQuery({
-    queryKey: ['my-stats', profile?.id],
+    queryKey: ['my-stats', profile?.id, month, year],
     enabled: !!profile,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('referrals')
-        .select('status')
+        .select('status, created_at')
         .eq('headhunter_id', profile!.id);
+      if (month && year) {
+        const start = new Date(year, month - 1, 1).toISOString();
+        const end = new Date(year, month, 0, 23, 59, 59, 999).toISOString();
+        query = query.gte('created_at', start).lte('created_at', end);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       const total = data.length;
       const inscribed = data.filter(r => r.status === 'inscrito' || r.status === 'matriculado').length;

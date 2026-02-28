@@ -80,13 +80,7 @@ const Login = () => {
         </div>
         <div className="relative z-10 max-w-md">
           <div className="flex items-center gap-3 mb-8">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl gradient-primary">
-              <GraduationCap className="w-7 h-7 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-primary-foreground">Audens Edu</h1>
-              <p className="text-sm text-sidebar-foreground/60">Plataforma de Indicações</p>
-            </div>
+            <img src="/images/logo-audens-edu-branco.png" alt="Audens Edu" className="h-16 w-auto" />
           </div>
           <h2 className="text-2xl font-semibold text-primary-foreground mb-4">
             Transforme conexões em oportunidades de aprendizado
@@ -116,13 +110,7 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl gradient-primary">
-              <GraduationCap className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Audens Edu</h1>
-              <p className="text-xs text-muted-foreground">Plataforma de Indicações</p>
-            </div>
+            <img src="/images/logo-audens-edu-branco.png" alt="Audens Edu" className="h-12 w-auto invert" />
           </div>
 
           <h2 className="text-xl font-bold text-foreground mb-1">

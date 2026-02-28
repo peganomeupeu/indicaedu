@@ -4,8 +4,9 @@ import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useAllReferrals, useRanking, useUpdateReferralStatus } from '@/hooks/useReferrals';
 import { useCourses, useAllCourses, useCreateCourse, useToggleCourse, useDeleteCourse } from '@/hooks/useCourses';
+import { useAllUsers, useDeleteUser, useDeleteReferralsByDateRange } from '@/hooks/useAdmin';
 import { STATUS_LABELS, ReferralStatus } from '@/types/referral';
-import { Users, UserCheck, GraduationCap, BarChart3, Download, Plus, Trash2 } from 'lucide-react';
+import { Users, UserCheck, GraduationCap, BarChart3, Download, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,19 +14,35 @@ import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const Admin = () => {
   const [filterCourse, setFilterCourse] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [newCourseName, setNewCourseName] = useState('');
+  const [deleteStartDate, setDeleteStartDate] = useState('');
+  const [deleteEndDate, setDeleteEndDate] = useState('');
   const { data: referrals = [], isLoading } = useAllReferrals();
   const { data: ranking = [] } = useRanking();
   const { data: activeCourses = [] } = useCourses();
   const { data: allCourses = [] } = useAllCourses();
+  const { data: allUsers = [] } = useAllUsers();
   const updateStatus = useUpdateReferralStatus();
   const createCourse = useCreateCourse();
   const toggleCourse = useToggleCourse();
   const deleteCourse = useDeleteCourse();
+  const deleteUser = useDeleteUser();
+  const deleteReferralsByRange = useDeleteReferralsByDateRange();
 
   const filtered = referrals.filter(r => {
     if (filterCourse !== 'all' && r.course !== filterCourse) return false;
@@ -60,6 +77,31 @@ const Admin = () => {
     a.href = url;
     a.download = `indicacoes_audens_${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
+  };
+
+  const handleDeleteByDateRange = () => {
+    if (!deleteStartDate || !deleteEndDate) {
+      toast.error('Selecione data inicial e final.');
+      return;
+    }
+    deleteReferralsByRange.mutate(
+      { startDate: deleteStartDate, endDate: deleteEndDate },
+      {
+        onSuccess: () => {
+          toast.success('Registros removidos com sucesso!');
+          setDeleteStartDate('');
+          setDeleteEndDate('');
+        },
+        onError: (err) => toast.error('Erro: ' + (err as Error).message),
+      }
+    );
+  };
+
+  const handleDeleteUser = (userId: string, userName: string) => {
+    deleteUser.mutate(userId, {
+      onSuccess: () => toast.success(`Usuário "${userName}" removido com sucesso.`),
+      onError: (err) => toast.error('Erro: ' + (err as Error).message),
+    });
   };
 
   return (
@@ -149,6 +191,64 @@ const Admin = () => {
           </div>
         )}
 
+        {/* Delete Referrals by Date Range */}
+        <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden mb-8">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-sm font-semibold text-foreground">Limpar Registros por Período</h2>
+          </div>
+          <div className="p-5">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Data inicial</label>
+                <Input
+                  type="date"
+                  value={deleteStartDate}
+                  onChange={(e) => setDeleteStartDate(e.target.value)}
+                  className="w-[170px]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Data final</label>
+                <Input
+                  type="date"
+                  value={deleteEndDate}
+                  onChange={(e) => setDeleteEndDate(e.target.value)}
+                  className="w-[170px]"
+                />
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="gap-1"
+                    disabled={!deleteStartDate || !deleteEndDate || deleteReferralsByRange.isPending}
+                  >
+                    <Trash2 className="w-4 h-4" /> Excluir registros
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                      Confirmar exclusão
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Todos os registros de indicações entre <strong>{deleteStartDate}</strong> e <strong>{deleteEndDate}</strong> serão removidos permanentemente. Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteByDateRange} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Sim, excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        </div>
+
         {/* Course Management */}
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden mb-8">
           <div className="px-5 py-4 border-b border-border">
@@ -206,6 +306,55 @@ const Admin = () => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* User Management */}
+        <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden mb-8">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-sm font-semibold text-foreground">Gerenciar Usuários</h2>
+          </div>
+          <div className="divide-y divide-border">
+            {allUsers.map((u) => (
+              <div key={u.id} className="px-5 py-3.5 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{u.full_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                </div>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                  {u.role === 'admin' ? 'Admin' : 'Headhunter'}
+                </span>
+                {u.role !== 'admin' && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="w-5 h-5 text-destructive" />
+                          Excluir usuário
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          O usuário <strong>{u.full_name}</strong> ({u.email}) será removido permanentemente da plataforma. Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteUser(u.user_id, u.full_name)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Sim, excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
