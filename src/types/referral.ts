@@ -70,3 +70,35 @@ export const POINTS_CONFIG = {
   inscrito: 30,
   matriculado: 50,
 };
+
+export const POSITION_OPTIONS = [
+  'Analista',
+  'Supervisor',
+  'Coordenador',
+  'Gerente',
+  'Diretor',
+  'Vice-presidente ou C-level',
+  'Presidente ou CEO',
+  'Sócio / Fundador',
+];
+
+export const AREA_OPTIONS = [
+  'Recursos Humanos',
+  'Financeiro',
+  'Contábil / Fiscal',
+  'Jurídico / Compliance',
+  'Administrativo',
+  'Comercial / Vendas',
+  'Marketing',
+  'Operações',
+  'Supply Chain / Logística',
+  'Compras',
+  'Engenharia',
+  'Tecnologia da Informação (TI)',
+  'Produto / Inovação',
+  'Dados / BI',
+  'Customer Success / Atendimento',
+  'Qualidade / Processos',
+  'Educação / Treinamento',
+  'Sustentabilidade / ESG',
+];

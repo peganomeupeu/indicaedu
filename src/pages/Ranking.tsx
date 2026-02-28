@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { useRanking } from '@/hooks/useReferrals';
 import { POINTS_CONFIG } from '@/types/referral';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -11,15 +12,18 @@ const MONTHS = [
 ];
 
 const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth() + 1;
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 const podiumIcons = [Trophy, Medal, Award];
 
 const Ranking = () => {
-  const [month, setMonth] = useState<number>(currentMonth);
-  const [year, setYear] = useState<number>(currentYear);
-  const { data: ranking = [], isLoading } = useRanking(month, year);
+  const [month, setMonth] = useState<string>('all');
+  const [year, setYear] = useState<string>('all');
+
+  const monthNum = month === 'all' ? undefined : Number(month);
+  const yearNum = year === 'all' ? undefined : Number(year);
+
+  const { data: ranking = [], isLoading } = useRanking(monthNum, yearNum);
 
   return (
     <AppLayout>
@@ -30,17 +34,19 @@ const Ranking = () => {
         </div>
 
         <div className="flex flex-wrap gap-3 mb-6">
-          <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+          <Select value={month} onValueChange={setMonth}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Integral</SelectItem>
               {MONTHS.map((m, i) => (
                 <SelectItem key={i + 1} value={String(i + 1)}>{m}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+          <Select value={year} onValueChange={setYear}>
             <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
               {YEARS.map(y => (
                 <SelectItem key={y} value={String(y)}>{y}</SelectItem>
               ))}
@@ -79,10 +85,16 @@ const Ranking = () => {
                 {ranking.slice(0, 3).map((user, i) => {
                   const Icon = podiumIcons[i];
                   const order = i === 0 ? 'order-2' : i === 1 ? 'order-1' : 'order-3';
+                  const initials = user.name?.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
                   return (
                     <div key={user.rank} className={`${order} bg-card rounded-xl border border-border shadow-card p-4 text-center ${i === 0 ? 'ring-2 ring-primary shadow-elevated' : ''}`}>
-                      <div className={`mx-auto flex items-center justify-center w-12 h-12 rounded-full mb-3 ${i === 0 ? 'gradient-primary' : 'bg-muted'}`}>
-                        <Icon className={`w-5 h-5 ${i === 0 ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                      <div className="mx-auto mb-3">
+                        <Avatar className={`mx-auto w-12 h-12 ${i === 0 ? 'ring-2 ring-primary' : ''}`}>
+                          {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.name} />}
+                          <AvatarFallback className={i === 0 ? 'gradient-primary text-primary-foreground font-bold' : 'bg-muted text-muted-foreground font-bold'}>
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
                       </div>
                       <p className="text-xs text-muted-foreground">#{user.rank}</p>
                       <p className="text-sm font-bold text-foreground mt-1 truncate">{user.name}</p>
@@ -102,21 +114,28 @@ const Ranking = () => {
                 <h2 className="text-sm font-semibold text-foreground">Ranking Completo</h2>
               </div>
               <div className="divide-y divide-border">
-                {ranking.map((user) => (
-                  <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                      {user.rank}
+                {ranking.map((user) => {
+                  const initials = user.name?.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
+                  return (
+                    <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                        {user.rank}
+                      </div>
+                      <Avatar className="w-8 h-8 shrink-0">
+                        {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.name} />}
+                        <AvatarFallback className="text-xs font-medium">{initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">{user.points}</p>
+                        <p className="text-xs text-muted-foreground">pontos</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} matrículas</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary">{user.points}</p>
-                      <p className="text-xs text-muted-foreground">pontos</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </>

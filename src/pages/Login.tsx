@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCountUp } from '@/hooks/useCountUp';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -25,6 +26,10 @@ const Login = () => {
       if (data && data.length > 0) setLoginStats(data[0]);
     });
   }, []);
+
+  const animatedReferrals = useCountUp(loginStats.total_referrals);
+  const animatedConversion = useCountUp(loginStats.conversion_rate);
+  const animatedCourses = useCountUp(loginStats.active_courses);
 
   // Redirect if already logged in
   if (user) {
@@ -99,15 +104,15 @@ const Login = () => {
           </p>
           <div className="mt-10 flex gap-8">
             <div>
-              <p className="text-3xl font-bold text-primary">{loginStats.total_referrals}</p>
+              <p className="text-3xl font-bold text-primary">{animatedReferrals}</p>
               <p className="text-sm text-sidebar-foreground/60">Indicações este mês</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-primary">{loginStats.conversion_rate}%</p>
+              <p className="text-3xl font-bold text-primary">{animatedConversion}%</p>
               <p className="text-sm text-sidebar-foreground/60">Taxa de conversão</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-primary">{loginStats.active_courses}</p>
+              <p className="text-3xl font-bold text-primary">{animatedCourses}</p>
               <p className="text-sm text-sidebar-foreground/60">Cursos disponíveis</p>
             </div>
           </div>

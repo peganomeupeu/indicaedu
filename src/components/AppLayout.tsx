@@ -1,15 +1,24 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, GraduationCap
+  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUpdateProfileName, useUploadAvatar } from '@/hooks/useProfile';
+import { toast } from 'sonner';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
-  const { profile, isAdmin, signOut } = useAuth();
+  const { user, profile, isAdmin, signOut, refreshProfile } = useAuth();
+  const updateName = useUpdateProfileName();
+  const uploadAvatar = useUploadAvatar();
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -28,6 +37,33 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleSaveName = () => {
+    if (!newName.trim()) return;
+    updateName.mutate(newName.trim(), {
+      onSuccess: () => {
+        toast.success('Nome atualizado!');
+        refreshProfile();
+        setEditingName(false);
+      },
+      onError: (err) => toast.error('Erro: ' + (err as Error).message),
+    });
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    uploadAvatar.mutate(
+      { userId: user.id, file },
+      {
+        onSuccess: () => {
+          toast.success('Avatar atualizado!');
+          refreshProfile();
+        },
+        onError: (err) => toast.error('Erro: ' + (err as Error).message),
+      }
+    );
   };
 
   return (
@@ -77,11 +113,39 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="px-3 py-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full gradient-primary text-xs font-bold text-primary-foreground">
-                {initials}
+              <div className="relative group">
+                <Avatar className="w-8 h-8">
+                  {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name} />}
+                  <AvatarFallback className="gradient-primary text-xs font-bold text-primary-foreground">{initials}</AvatarFallback>
+                </Avatar>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 flex items-center justify-center bg-foreground/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Camera className="w-3 h-3 text-primary-foreground" />
+                </button>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-primary-foreground truncate">{profile?.full_name ?? '...'}</p>
+                {editingName ? (
+                  <form onSubmit={(e) => { e.preventDefault(); handleSaveName(); }} className="flex gap-1">
+                    <Input
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="h-6 text-xs bg-sidebar-accent border-sidebar-border text-sidebar-primary-foreground px-1.5"
+                      autoFocus
+                      onBlur={() => setEditingName(false)}
+                    />
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => { setNewName(profile?.full_name ?? ''); setEditingName(true); }}
+                    className="flex items-center gap-1 group/name"
+                  >
+                    <p className="text-sm font-medium text-sidebar-primary-foreground truncate">{profile?.full_name ?? '...'}</p>
+                    <Pencil className="w-3 h-3 text-sidebar-foreground/40 opacity-0 group-hover/name:opacity-100 transition-opacity" />
+                  </button>
+                )}
                 <p className="text-xs text-sidebar-foreground/50 truncate">{profile?.email ?? ''}</p>
               </div>
             </div>

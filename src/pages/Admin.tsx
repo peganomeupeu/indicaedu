@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useAllReferrals, useRanking, useUpdateReferralStatus } from '@/hooks/useReferrals';
 import { useCourses, useAllCourses, useCreateCourse, useToggleCourse, useDeleteCourse } from '@/hooks/useCourses';
 import { useAllUsers, useDeleteUser, useDeleteReferralsByDateRange } from '@/hooks/useAdmin';
+import { useAdminUploadAvatar } from '@/hooks/useProfile';
 import { STATUS_LABELS, ReferralStatus } from '@/types/referral';
-import { Users, UserCheck, GraduationCap, BarChart3, Download, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Users, UserCheck, GraduationCap, BarChart3, Download, Plus, Trash2, AlertTriangle, Camera } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -32,6 +34,8 @@ const Admin = () => {
   const [newCourseName, setNewCourseName] = useState('');
   const [deleteStartDate, setDeleteStartDate] = useState('');
   const [deleteEndDate, setDeleteEndDate] = useState('');
+  const adminAvatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarTargetUser, setAvatarTargetUser] = useState<string | null>(null);
   const { data: referrals = [], isLoading } = useAllReferrals();
   const { data: ranking = [] } = useRanking();
   const { data: activeCourses = [] } = useCourses();
@@ -43,6 +47,7 @@ const Admin = () => {
   const deleteCourse = useDeleteCourse();
   const deleteUser = useDeleteUser();
   const deleteReferralsByRange = useDeleteReferralsByDateRange();
+  const adminUploadAvatar = useAdminUploadAvatar();
 
   const filtered = referrals.filter(r => {
     if (filterCourse !== 'all' && r.course !== filterCourse) return false;
@@ -102,6 +107,19 @@ const Admin = () => {
       onSuccess: () => toast.success(`Usuário "${userName}" removido com sucesso.`),
       onError: (err) => toast.error('Erro: ' + (err as Error).message),
     });
+  };
+
+  const handleAdminAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !avatarTargetUser) return;
+    adminUploadAvatar.mutate(
+      { targetUserId: avatarTargetUser, file },
+      {
+        onSuccess: () => toast.success('Avatar atualizado!'),
+        onError: (err) => toast.error('Erro: ' + (err as Error).message),
+      }
+    );
+    setAvatarTargetUser(null);
   };
 
   return (
@@ -310,51 +328,67 @@ const Admin = () => {
         </div>
 
         {/* User Management */}
+        <input ref={adminAvatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAdminAvatarUpload} />
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden mb-8">
           <div className="px-5 py-4 border-b border-border">
             <h2 className="text-sm font-semibold text-foreground">Gerenciar Usuários</h2>
           </div>
           <div className="divide-y divide-border">
-            {allUsers.map((u) => (
-              <div key={u.id} className="px-5 py-3.5 flex items-center gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{u.full_name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+            {allUsers.map((u) => {
+              const userInitials = u.full_name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
+              return (
+                <div key={u.id} className="px-5 py-3.5 flex items-center gap-4">
+                  <div className="relative group">
+                    <Avatar className="w-8 h-8">
+                      {(u as any).avatar_url && <AvatarImage src={(u as any).avatar_url} alt={u.full_name} />}
+                      <AvatarFallback className="text-xs font-medium">{userInitials}</AvatarFallback>
+                    </Avatar>
+                    <button
+                      onClick={() => { setAvatarTargetUser(u.user_id); adminAvatarInputRef.current?.click(); }}
+                      className="absolute inset-0 flex items-center justify-center bg-foreground/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Camera className="w-3 h-3 text-primary-foreground" />
+                    </button>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{u.full_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                    {u.role === 'admin' ? 'Admin' : 'Headhunter'}
+                  </span>
+                  {u.role !== 'admin' && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-destructive" />
+                            Excluir usuário
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            O usuário <strong>{u.full_name}</strong> ({u.email}) será removido permanentemente da plataforma. Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteUser(u.user_id, u.full_name)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Sim, excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                  {u.role === 'admin' ? 'Admin' : 'Headhunter'}
-                </span>
-                {u.role !== 'admin' && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2">
-                          <AlertTriangle className="w-5 h-5 text-destructive" />
-                          Excluir usuário
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          O usuário <strong>{u.full_name}</strong> ({u.email}) será removido permanentemente da plataforma. Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteUser(u.user_id, u.full_name)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Sim, excluir
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

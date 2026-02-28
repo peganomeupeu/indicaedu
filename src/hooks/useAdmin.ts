@@ -8,6 +8,7 @@ export interface PlatformUser {
   email: string;
   created_at: string;
   role: string;
+  avatar_url?: string | null;
 }
 
 export function useAllUsers() {
