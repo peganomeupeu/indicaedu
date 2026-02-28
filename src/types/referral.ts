@@ -44,7 +44,7 @@ export const STATUS_COLORS: Record<ReferralStatus, string> = {
   indicado: 'bg-info text-info-foreground',
   qualificado: 'bg-warning text-warning-foreground',
   inscrito: 'bg-success text-success-foreground',
-  nao_convertido: 'bg-accent text-accent-foreground',
+  nao_convertido: 'bg-destructive/80 text-destructive-foreground',
   nao_qualificado: 'bg-destructive text-destructive-foreground',
 };
 

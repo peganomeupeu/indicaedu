@@ -192,6 +192,8 @@ export type Database = {
           headhunter_name: string
           total_enrolled: number
           total_inscribed: number
+          total_nao_convertido: number
+          total_nao_qualificado: number
           total_referrals: number
         }[]
       }

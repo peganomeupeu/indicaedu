@@ -130,18 +130,29 @@ export function useRanking(month?: number, year?: number) {
         p_year: year ?? null,
       });
       if (error) throw error;
-      return (data ?? []).map((u: any, i: number) => ({
-        name: u.headhunter_name,
-        referrals: Number(u.total_referrals),
-        enrolled: Number(u.total_enrolled),
-        qualified: Number(u.total_inscribed),
-        avatar_url: u.avatar_url ?? null,
-        points:
-          (Number(u.total_referrals) - Number(u.total_inscribed) - Number(u.total_enrolled)) * POINTS_CONFIG.indicado +
-          Number(u.total_inscribed) * POINTS_CONFIG.qualificado +
-          Number(u.total_enrolled) * POINTS_CONFIG.inscrito,
-        rank: i + 1,
-      }));
+      return (data ?? []).map((u: any, i: number) => {
+        const total = Number(u.total_referrals);
+        const enrolled = Number(u.total_enrolled);
+        const qualified = Number(u.total_inscribed);
+        const naoConvertido = Number(u.total_nao_convertido);
+        const naoQualificado = Number(u.total_nao_qualificado);
+        const indicado = total - enrolled - qualified - naoConvertido - naoQualificado;
+        const points =
+          indicado * POINTS_CONFIG.indicado +
+          qualified * POINTS_CONFIG.qualificado +
+          enrolled * POINTS_CONFIG.inscrito +
+          naoConvertido * POINTS_CONFIG.nao_convertido +
+          naoQualificado * POINTS_CONFIG.nao_qualificado;
+        return {
+          name: u.headhunter_name,
+          referrals: total,
+          enrolled,
+          qualified,
+          avatar_url: u.avatar_url ?? null,
+          points,
+          rank: i + 1,
+        };
+      });
     },
   });
 }
