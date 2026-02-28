@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { INTEREST_LABELS, InterestLevel } from '@/types/referral';
+import { INTEREST_LABELS, InterestLevel, POSITION_OPTIONS, AREA_OPTIONS } from '@/types/referral';
 import { useCreateReferral } from '@/hooks/useReferrals';
 import { useCourses } from '@/hooks/useCourses';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ const NewReferral = () => {
     referred_phone: '',
     referred_company: '',
     referred_position: '',
+    referred_area: '',
     course: '',
     interest_level: '' as InterestLevel | '',
     notes: '',
@@ -33,12 +34,13 @@ const NewReferral = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.course || !form.interest_level) {
+    if (!form.course || !form.interest_level || !form.referred_position || !form.referred_area) {
       toast.error('Preencha todos os campos obrigatórios.');
       return;
     }
+    const { referred_area, ...rest } = form;
     createReferral.mutate(
-      { ...form, interest_level: form.interest_level as string },
+      { ...rest, referred_company: `${form.referred_company}`, referred_position: `${form.referred_position} — ${referred_area}`, interest_level: form.interest_level as string },
       {
         onSuccess: () => {
           toast.success('Indicação registrada com sucesso!', {
@@ -82,13 +84,27 @@ const NewReferral = () => {
                 <Label>Telefone / WhatsApp *</Label>
                 <Input placeholder="(11) 99999-9999" value={form.referred_phone} onChange={(e) => updateField('referred_phone', e.target.value)} required />
               </div>
-              <div className="space-y-2">
+              <div className="md:col-span-2 space-y-2">
                 <Label>Empresa atual *</Label>
                 <Input placeholder="Nome da empresa" value={form.referred_company} onChange={(e) => updateField('referred_company', e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label>Cargo atual *</Label>
-                <Input placeholder="Cargo do indicado" value={form.referred_position} onChange={(e) => updateField('referred_position', e.target.value)} required />
+                <Label>Cargo *</Label>
+                <Select value={form.referred_position} onValueChange={(v) => updateField('referred_position', v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
+                  <SelectContent>
+                    {POSITION_OPTIONS.map(p => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Área *</Label>
+                <Select value={form.referred_area} onValueChange={(v) => updateField('referred_area', v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a área" /></SelectTrigger>
+                  <SelectContent>
+                    {AREA_OPTIONS.map(a => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

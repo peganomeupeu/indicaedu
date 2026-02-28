@@ -1,17 +1,30 @@
+import { useState } from 'react';
 import { Users, UserCheck, GraduationCap, TrendingUp, Trophy, Target } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useMyReferrals, useMyStats, useRanking } from '@/hooks/useReferrals';
 import { useAuth } from '@/contexts/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const MONTHS = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 const Dashboard = () => {
   const { profile } = useAuth();
-  const currentMonth = new Date().getMonth() + 1;
-  const currentYear = new Date().getFullYear();
+  const [month, setMonth] = useState<string>('all');
+  const [year, setYear] = useState<string>('all');
+
+  const monthNum = month === 'all' ? undefined : Number(month);
+  const yearNum = year === 'all' ? undefined : Number(year);
+
   const { data: referrals = [] } = useMyReferrals();
-  const { data: stats } = useMyStats(currentMonth, currentYear);
-  const { data: ranking = [] } = useRanking(currentMonth, currentYear);
+  const { data: stats } = useMyStats(monthNum, yearNum);
+  const { data: ranking = [] } = useRanking(monthNum, yearNum);
 
   const recentReferrals = referrals.slice(0, 3);
   const myRank = ranking.findIndex(r => r.name === profile?.full_name) + 1;
@@ -19,11 +32,33 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Acompanhe suas indicações e sua posição no ranking
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Acompanhe suas indicações e sua posição no ranking
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Select value={month} onValueChange={setMonth}>
+              <SelectTrigger className="w-[150px] h-9 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os meses</SelectItem>
+                {MONTHS.map((m, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={year} onValueChange={setYear}>
+              <SelectTrigger className="w-[110px] h-9 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {YEARS.map(y => (
+                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">

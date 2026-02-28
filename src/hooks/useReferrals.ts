@@ -135,6 +135,7 @@ export function useRanking(month?: number, year?: number) {
         name: u.headhunter_name,
         referrals: Number(u.total_referrals),
         enrolled: Number(u.total_enrolled),
+        avatar_url: u.avatar_url ?? null,
         points:
           Number(u.total_referrals) * POINTS_CONFIG.indicado +
           Number(u.total_inscribed) * POINTS_CONFIG.inscrito +
