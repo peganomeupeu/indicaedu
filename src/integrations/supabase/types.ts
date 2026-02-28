@@ -173,6 +173,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_login_stats: {
+        Args: never
+        Returns: {
+          active_courses: number
+          conversion_rate: number
+          total_referrals: number
+        }[]
+      }
       get_my_profile_id: { Args: never; Returns: string }
       get_ranking: {
         Args: { p_month?: number; p_year?: number }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Mail, Lock, ArrowRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,14 @@ const Login = () => {
   const [forgotPassword, setForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
+
+  const [loginStats, setLoginStats] = useState({ total_referrals: 0, conversion_rate: 0, active_courses: 0 });
+
+  useEffect(() => {
+    supabase.rpc('get_login_stats').then(({ data }) => {
+      if (data && data.length > 0) setLoginStats(data[0]);
+    });
+  }, []);
 
   // Redirect if already logged in
   if (user) {
@@ -91,15 +99,15 @@ const Login = () => {
           </p>
           <div className="mt-10 flex gap-8">
             <div>
-              <p className="text-3xl font-bold text-primary">150+</p>
+              <p className="text-3xl font-bold text-primary">{loginStats.total_referrals}</p>
               <p className="text-sm text-sidebar-foreground/60">Indicações este mês</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-primary">42%</p>
+              <p className="text-3xl font-bold text-primary">{loginStats.conversion_rate}%</p>
               <p className="text-sm text-sidebar-foreground/60">Taxa de conversão</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-primary">8</p>
+              <p className="text-3xl font-bold text-primary">{loginStats.active_courses}</p>
               <p className="text-sm text-sidebar-foreground/60">Cursos disponíveis</p>
             </div>
           </div>
