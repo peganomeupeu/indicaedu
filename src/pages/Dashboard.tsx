@@ -6,18 +6,20 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { useMyReferrals, useMyStats, useRanking } from '@/hooks/useReferrals';
 import { useAuth } from '@/contexts/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth() + 1;
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 const Dashboard = () => {
   const { profile } = useAuth();
-  const [month, setMonth] = useState<string>('all');
-  const [year, setYear] = useState<string>('all');
+  const [month, setMonth] = useState<string>(String(currentMonth));
+  const [year, setYear] = useState<string>(String(currentYear));
 
   const monthNum = month === 'all' ? undefined : Number(month);
   const yearNum = year === 'all' ? undefined : Number(year);
@@ -96,19 +98,26 @@ const Dashboard = () => {
               <h2 className="text-sm font-semibold text-foreground">Top 5 Headhunters</h2>
             </div>
             <div className="divide-y divide-border">
-              {ranking.slice(0, 5).map((user) => (
-                <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
-                    ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                    {user.rank}
+              {ranking.slice(0, 5).map((user) => {
+                const initials = user.name?.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
+                return (
+                  <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0
+                      ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                      {user.rank}
+                    </div>
+                    <Avatar className="w-8 h-8 shrink-0">
+                      {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.name} />}
+                      <AvatarFallback className="text-xs font-medium">{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.referrals} indicações</p>
+                    </div>
+                    <p className="text-sm font-bold text-primary">{user.points} pts</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.referrals} indicações</p>
-                  </div>
-                  <p className="text-sm font-bold text-primary">{user.points} pts</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
