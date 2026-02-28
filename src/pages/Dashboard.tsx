@@ -63,8 +63,8 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <StatCard title="Total de Indicações" value={stats?.total_referrals ?? 0} icon={Users} />
-          <StatCard title="Inscritos" value={stats?.total_inscribed ?? 0} subtitle={`${stats?.conversion_rate ?? 0}% de conversão`} icon={UserCheck} />
-          <StatCard title="Matriculados" value={stats?.total_enrolled ?? 0} icon={GraduationCap} />
+          <StatCard title="Qualificados" value={stats?.total_inscribed ?? 0} subtitle={`${stats?.conversion_rate ?? 0}% de conversão`} icon={UserCheck} />
+          <StatCard title="Inscritos" value={stats?.total_enrolled ?? 0} icon={GraduationCap} />
           <StatCard title="Taxa de Conversão" value={`${stats?.conversion_rate ?? 0}%`} icon={TrendingUp} />
           <StatCard title="Pontuação" value={stats?.points ?? 0} subtitle="pts acumulados" icon={Target} highlight />
           <StatCard title="Sua Posição" value={myRank > 0 ? `#${myRank}` : '-'} subtitle="no ranking geral" icon={Trophy} />
