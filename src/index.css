@@ -113,4 +113,13 @@
   .shadow-elevated {
     box-shadow: var(--shadow-elevated);
   }
+  .animation-delay-0 {
+    animation-delay: 0ms;
+  }
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
 }
