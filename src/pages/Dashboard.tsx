@@ -7,9 +7,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
   const { profile } = useAuth();
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
   const { data: referrals = [] } = useMyReferrals();
-  const { data: stats } = useMyStats();
-  const { data: ranking = [] } = useRanking();
+  const { data: stats } = useMyStats(currentMonth, currentYear);
+  const { data: ranking = [] } = useRanking(currentMonth, currentYear);
 
   const recentReferrals = referrals.slice(0, 3);
   const myRank = ranking.findIndex(r => r.name === profile?.full_name) + 1;

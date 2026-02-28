@@ -47,13 +47,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       `}>
         <div className="flex flex-col h-full">
           <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl gradient-primary">
-              <GraduationCap className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-sidebar-primary-foreground">Audens</h1>
-              <p className="text-xs text-sidebar-foreground/60">Edu · Indicações</p>
-            </div>
+            <img src="/images/logo-audens-edu-branco.png" alt="Audens Edu" className="h-10 w-auto" />
             <button className="ml-auto lg:hidden text-sidebar-foreground/60" onClick={() => setSidebarOpen(false)}>
               <X className="w-5 h-5" />
             </button>
@@ -109,12 +103,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <button onClick={() => setSidebarOpen(true)}>
             <Menu className="w-5 h-5 text-foreground" />
           </button>
-          <div className="flex items-center gap-2 ml-3">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg gradient-primary">
-              <GraduationCap className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-foreground">Audens Edu</span>
-          </div>
+          <img src="/images/logo-audens-edu-branco.png" alt="Audens Edu" className="h-7 w-auto ml-3 invert" />
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           {children}
