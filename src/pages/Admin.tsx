@@ -4,10 +4,10 @@ import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useAllReferrals, useRanking, useUpdateReferralStatus } from '@/hooks/useReferrals';
 import { useCourses, useAllCourses, useCreateCourse, useToggleCourse, useDeleteCourse } from '@/hooks/useCourses';
-import { useAllUsers, useDeleteUser, useDeleteReferralsByDateRange } from '@/hooks/useAdmin';
+import { useAllUsers, useDeleteUser, useDeleteReferralsByDateRange, useToggleUserRole, useResetUserPassword } from '@/hooks/useAdmin';
 import { useAdminUploadAvatar } from '@/hooks/useProfile';
 import { STATUS_LABELS, ReferralStatus } from '@/types/referral';
-import { Users, UserCheck, GraduationCap, BarChart3, Download, Plus, Trash2, AlertTriangle, Camera } from 'lucide-react';
+import { Users, UserCheck, GraduationCap, BarChart3, Download, Plus, Trash2, AlertTriangle, Camera, Shield, KeyRound } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,8 @@ const Admin = () => {
   const [deleteEndDate, setDeleteEndDate] = useState('');
   const adminAvatarInputRef = useRef<HTMLInputElement>(null);
   const [avatarTargetUser, setAvatarTargetUser] = useState<string | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<{ userId: string; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState('');
   const { data: referrals = [], isLoading } = useAllReferrals();
   const { data: ranking = [] } = useRanking();
   const { data: activeCourses = [] } = useCourses();
@@ -48,6 +50,8 @@ const Admin = () => {
   const deleteUser = useDeleteUser();
   const deleteReferralsByRange = useDeleteReferralsByDateRange();
   const adminUploadAvatar = useAdminUploadAvatar();
+  const toggleRole = useToggleUserRole();
+  const resetPassword = useResetUserPassword();
 
   const filtered = referrals.filter(r => {
     if (filterCourse !== 'all' && r.course !== filterCourse) return false;
@@ -120,6 +124,35 @@ const Admin = () => {
       }
     );
     setAvatarTargetUser(null);
+  };
+
+  const handleToggleRole = (userId: string, currentRole: string, userName: string) => {
+    const newRole = currentRole === 'admin' ? 'headhunter' : 'admin';
+    toggleRole.mutate(
+      { userId, newRole },
+      {
+        onSuccess: () => toast.success(`${userName} agora é ${newRole === 'admin' ? 'Admin' : 'Headhunter'}.`),
+        onError: (err) => toast.error('Erro: ' + (err as Error).message),
+      }
+    );
+  };
+
+  const handleResetPassword = () => {
+    if (!resetPasswordUser || !newPassword || newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    resetPassword.mutate(
+      { userId: resetPasswordUser.userId, password: newPassword },
+      {
+        onSuccess: () => {
+          toast.success(`Senha de "${resetPasswordUser.name}" redefinida com sucesso.`);
+          setResetPasswordUser(null);
+          setNewPassword('');
+        },
+        onError: (err) => toast.error('Erro: ' + (err as Error).message),
+      }
+    );
   };
 
   return (
@@ -357,7 +390,53 @@ const Admin = () => {
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
                     {u.role === 'admin' ? 'Admin' : 'Headhunter'}
                   </span>
-                  {u.role !== 'admin' && (
+                  <div className="flex items-center gap-1">
+                    {/* Role toggle */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 ${u.role === 'admin' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+                          title={u.role === 'admin' ? 'Remover admin' : 'Tornar admin'}
+                        >
+                          <Shield className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <Shield className="w-5 h-5 text-primary" />
+                            Alterar função
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {u.role === 'admin'
+                              ? <>Deseja remover o papel de <strong>Admin</strong> de <strong>{u.full_name}</strong>? Ele passará a ser Headhunter.</>
+                              : <>Deseja tornar <strong>{u.full_name}</strong> um <strong>Admin</strong>? Ele terá acesso total à plataforma.</>
+                            }
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleToggleRole(u.user_id, u.role, u.full_name)}>
+                            Sim, alterar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    {/* Reset password */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      title="Resetar senha"
+                      onClick={() => setResetPasswordUser({ userId: u.user_id, name: u.full_name })}
+                    >
+                      <KeyRound className="w-4 h-4" />
+                    </Button>
+
+                    {/* Delete user */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
@@ -385,12 +464,40 @@ const Admin = () => {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                  )}
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
+
+        {/* Password Reset Dialog */}
+        <AlertDialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(''); } }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-primary" />
+                Resetar senha
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Defina uma nova senha para <strong>{resetPasswordUser?.name}</strong>.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Input
+              type="password"
+              placeholder="Nova senha (mín. 6 caracteres)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="mt-2"
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleResetPassword} disabled={newPassword.length < 6 || resetPassword.isPending}>
+                Redefinir senha
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border">

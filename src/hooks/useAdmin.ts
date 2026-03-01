@@ -51,6 +51,34 @@ export function useDeleteUser() {
   });
 }
 
+export function useToggleUserRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin' | 'headhunter' }) => {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: newRole })
+        .eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
+    },
+  });
+}
+
+export function useResetUserPassword() {
+  return useMutation({
+    mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-update-password', {
+        body: { user_id: userId, password },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+  });
+}
+
 export function useDeleteReferralsByDateRange() {
   const queryClient = useQueryClient();
   return useMutation({
