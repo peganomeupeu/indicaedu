@@ -99,12 +99,14 @@ export type Database = {
       }
       referrals: {
         Row: {
+          attended_by: string | null
           course: string
           created_at: string
           headhunter_id: string
           id: string
           interest_level: Database["public"]["Enums"]["interest_level"]
           notes: string | null
+          rd_station_sent: boolean
           referred_company: string
           referred_email: string
           referred_name: string
@@ -114,12 +116,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attended_by?: string | null
           course: string
           created_at?: string
           headhunter_id: string
           id?: string
           interest_level?: Database["public"]["Enums"]["interest_level"]
           notes?: string | null
+          rd_station_sent?: boolean
           referred_company: string
           referred_email: string
           referred_name: string
@@ -129,12 +133,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attended_by?: string | null
           course?: string
           created_at?: string
           headhunter_id?: string
           id?: string
           interest_level?: Database["public"]["Enums"]["interest_level"]
           notes?: string | null
+          rd_station_sent?: boolean
           referred_company?: string
           referred_email?: string
           referred_name?: string
@@ -144,6 +150,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "referrals_attended_by_fkey"
+            columns: ["attended_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "referrals_headhunter_id_fkey"
             columns: ["headhunter_id"]
