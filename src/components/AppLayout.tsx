@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera
+  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera, Columns3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
