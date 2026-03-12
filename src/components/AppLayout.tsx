@@ -24,7 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/nova-indicacao', label: 'Nova Indicação', icon: UserPlus },
     { path: '/indicacoes', label: 'Indicações', icon: List },
-    { path: '/pipeline', label: 'Pipeline', icon: LayoutDashboard },
+    { path: '/pipeline', label: 'Pipeline', icon: Columns3 },
     { path: '/ranking', label: 'Ranking', icon: Trophy },
     ...(isAdmin ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
   ];
