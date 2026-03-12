@@ -3,6 +3,7 @@ import { Trophy } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { useRanking } from '@/hooks/useReferrals';
 import { POINTS_CONFIG } from '@/types/referral';
+import { HeadhunterDetailSheet } from '@/components/HeadhunterDetailSheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
@@ -18,30 +19,24 @@ const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 const PODIUM_STYLES = [
   {
     border: 'border-[hsl(45,93%,47%)]',
-    ring: 'ring-[hsl(45,93%,47%)]',
     bg: 'bg-[hsl(45,93%,97%)]',
     label: '🥇',
     shadow: 'shadow-[0_4px_20px_-4px_hsl(45,93%,47%,0.3)]',
     avatarRing: 'ring-2 ring-[hsl(45,93%,47%)]',
-    delay: 'animation-delay-0',
   },
   {
     border: 'border-[hsl(0,0%,70%)]',
-    ring: 'ring-[hsl(0,0%,70%)]',
     bg: 'bg-[hsl(0,0%,97%)]',
     label: '🥈',
     shadow: 'shadow-[0_4px_16px_-4px_hsl(0,0%,50%,0.2)]',
     avatarRing: 'ring-2 ring-[hsl(0,0%,75%)]',
-    delay: 'animation-delay-100',
   },
   {
     border: 'border-[hsl(25,60%,52%)]',
-    ring: 'ring-[hsl(25,60%,52%)]',
     bg: 'bg-[hsl(25,60%,97%)]',
     label: '🥉',
     shadow: 'shadow-[0_4px_16px_-4px_hsl(25,60%,52%,0.2)]',
     avatarRing: 'ring-2 ring-[hsl(25,60%,52%)]',
-    delay: 'animation-delay-200',
   },
 ];
 
@@ -51,6 +46,7 @@ const getInitials = (name: string) =>
 const Ranking = () => {
   const [month, setMonth] = useState<string>(String(currentMonth));
   const [year, setYear] = useState<string>(String(currentYear));
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   const monthNum = month === 'all' ? undefined : Number(month);
   const yearNum = year === 'all' ? undefined : Number(year);
@@ -125,20 +121,19 @@ const Ranking = () => {
                   return (
                     <div
                       key={user.rank}
+                      onClick={() => setSelectedUser(user)}
                       className={`
                         relative rounded-xl border-2 ${style.border} ${style.bg} ${style.shadow}
-                        p-5 text-center transition-all duration-300 hover:scale-[1.02]
-                        animate-fade-in ${style.delay}
+                        p-5 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer
+                        animate-fade-in
                         ${isFirst ? 'sm:order-2 sm:-mt-2' : idx === 1 ? 'sm:order-1' : 'sm:order-3'}
                       `}
                     >
-                      {/* Crown for #1 */}
                       {isFirst && (
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-2xl animate-scale-in">
                           👑
                         </div>
                       )}
-
                       <div className="flex flex-col items-center gap-3 mt-1">
                         <Avatar className={`w-16 h-16 ${style.avatarRing}`}>
                           {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.name} />}
@@ -146,13 +141,11 @@ const Ranking = () => {
                             {initials}
                           </AvatarFallback>
                         </Avatar>
-
                         <div>
                           <p className="text-base font-bold text-foreground truncate max-w-[160px]">{user.name}</p>
                           <p className="text-2xl font-extrabold text-primary mt-1">{user.points}</p>
                           <p className="text-xs text-muted-foreground">pontos</p>
                         </div>
-
                         <div className="w-full pt-3 border-t border-border/50 flex justify-center gap-4">
                           <div className="text-center">
                             <p className="text-sm font-semibold text-foreground">{user.referrals}</p>
@@ -179,7 +172,11 @@ const Ranking = () => {
                 {ranking.map((user) => {
                   const initials = getInitials(user.name);
                   return (
-                    <div key={user.rank} className="px-5 py-3.5 flex items-center gap-4">
+                    <div
+                      key={user.rank}
+                      onClick={() => setSelectedUser(user)}
+                      className="px-5 py-3.5 flex items-center gap-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                    >
                       <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 ${user.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                         {user.rank}
                       </div>
@@ -203,6 +200,12 @@ const Ranking = () => {
           </>
         )}
       </div>
+
+      <HeadhunterDetailSheet
+        open={!!selectedUser}
+        onOpenChange={(open) => { if (!open) setSelectedUser(null); }}
+        user={selectedUser}
+      />
     </AppLayout>
   );
 };
