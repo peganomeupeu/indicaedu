@@ -21,6 +21,8 @@ export interface Referral {
   created_at: string;
   headhunter_id: string;
   headhunter_name?: string;
+  attended_by?: string | null;
+  rd_station_sent?: boolean;
 }
 
 export interface HeadhunterStats {
@@ -47,6 +49,22 @@ export const STATUS_COLORS: Record<ReferralStatus, string> = {
   nao_convertido: 'bg-destructive/80 text-destructive-foreground',
   nao_qualificado: 'bg-destructive text-destructive-foreground',
 };
+
+export const PIPELINE_COLORS: Record<ReferralStatus, string> = {
+  indicado: 'border-t-[hsl(210,80%,55%)]',
+  qualificado: 'border-t-[hsl(38,92%,50%)]',
+  inscrito: 'border-t-[hsl(142,70%,45%)]',
+  nao_convertido: 'border-t-[hsl(0,84%,60%)]',
+  nao_qualificado: 'border-t-[hsl(0,84%,40%)]',
+};
+
+export const PIPELINE_ORDER: ReferralStatus[] = [
+  'indicado',
+  'qualificado',
+  'inscrito',
+  'nao_convertido',
+  'nao_qualificado',
+];
 
 export const INTEREST_LABELS: Record<InterestLevel, string> = {
   baixo: 'Baixo',

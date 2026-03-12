@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera
+  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera, Columns3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/nova-indicacao', label: 'Nova Indicação', icon: UserPlus },
     { path: '/indicacoes', label: 'Indicações', icon: List },
+    { path: '/pipeline', label: 'Pipeline', icon: Columns3 },
     { path: '/ranking', label: 'Ranking', icon: Trophy },
     ...(isAdmin ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
   ];

@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import NewReferral from "./pages/NewReferral";
 import Referrals from "./pages/Referrals";
 import Ranking from "./pages/Ranking";
+import Pipeline from "./pages/Pipeline";
 import Admin from "./pages/Admin";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/nova-indicacao" element={<ProtectedRoute><NewReferral /></ProtectedRoute>} />
             <Route path="/indicacoes" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
             <Route path="/ranking" element={<ProtectedRoute><Ranking /></ProtectedRoute>} />
+            <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

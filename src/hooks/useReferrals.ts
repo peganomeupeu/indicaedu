@@ -86,6 +86,38 @@ export function useUpdateReferralStatus() {
   });
 }
 
+export function useUpdateReferralAttendedBy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, attended_by }: { id: string; attended_by: string | null }) => {
+      const { error } = await supabase
+        .from('referrals')
+        .update({ attended_by: attended_by as any })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-referrals'] });
+    },
+  });
+}
+
+export function useToggleRdStation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, rd_station_sent }: { id: string; rd_station_sent: boolean }) => {
+      const { error } = await supabase
+        .from('referrals')
+        .update({ rd_station_sent: rd_station_sent as any })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-referrals'] });
+    },
+  });
+}
+
 export function useMyStats(month?: number, year?: number) {
   const { profile } = useAuth();
   return useQuery({
@@ -148,11 +180,33 @@ export function useRanking(month?: number, year?: number) {
           referrals: total,
           enrolled,
           qualified,
+          naoConvertido,
+          naoQualificado,
           avatar_url: u.avatar_url ?? null,
           points,
           rank: i + 1,
         };
       });
+    },
+  });
+}
+
+export function useHeadhunterReferrals(headhunterName: string | null) {
+  return useQuery({
+    queryKey: ['headhunter-referrals', headhunterName],
+    enabled: !!headhunterName,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('referrals')
+        .select('*, profiles!referrals_headhunter_id_fkey(full_name)')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? [])
+        .filter(r => (r.profiles as any)?.full_name === headhunterName)
+        .map(r => ({
+          ...r,
+          headhunter_name: (r.profiles as any)?.full_name ?? '',
+        }));
     },
   });
 }
