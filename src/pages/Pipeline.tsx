@@ -1,24 +1,49 @@
-import { useState, DragEvent } from 'react';
+import { useState, DragEvent, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useAllReferrals, useUpdateReferralStatus } from '@/hooks/useReferrals';
+import { useAllUsers } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReferralStatus, STATUS_LABELS, PIPELINE_ORDER, PIPELINE_COLORS } from '@/types/referral';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { GripVertical, User, Building, Calendar, UserCheck } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Pipeline = () => {
   const { isAdmin } = useAuth();
   const { data: referrals = [], isLoading } = useAllReferrals();
+  const { data: allUsers = [] } = useAllUsers();
   const updateStatus = useUpdateReferralStatus();
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
+  const [filterHeadhunter, setFilterHeadhunter] = useState<string>('all');
+  const [filterAttendant, setFilterAttendant] = useState<string>('all');
+
+  const adminUsers = allUsers.filter(u => u.role === 'admin');
+  const uniqueHeadhunters = useMemo(
+    () => [...new Set(referrals.map(r => r.headhunter_name).filter(Boolean))],
+    [referrals]
+  );
+
+  const filtered = useMemo(() => {
+    return referrals.filter(r => {
+      if (filterHeadhunter !== 'all' && r.headhunter_name !== filterHeadhunter) return false;
+      if (filterAttendant !== 'all') {
+        if (filterAttendant === 'none') {
+          if ((r as any).attended_by) return false;
+        } else {
+          if ((r as any).attended_by !== filterAttendant) return false;
+        }
+      }
+      return true;
+    });
+  }, [referrals, filterHeadhunter, filterAttendant]);
 
   const columns = PIPELINE_ORDER.map(status => ({
     status,
     label: STATUS_LABELS[status],
-    items: referrals.filter(r => r.status === status),
+    items: filtered.filter(r => r.status === status),
   }));
 
   const handleDragStart = (e: DragEvent, id: string) => {
@@ -62,6 +87,29 @@ const Pipeline = () => {
           <p className="text-sm text-muted-foreground mt-1">
             {isAdmin ? 'Arraste os cards para atualizar o status' : 'Visualize o funil de indicações'}
           </p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Select value={filterHeadhunter} onValueChange={setFilterHeadhunter}>
+            <SelectTrigger className="w-[200px] h-9 text-sm"><SelectValue placeholder="Headhunter" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os headhunters</SelectItem>
+              {uniqueHeadhunters.map(name => (
+                <SelectItem key={name} value={name!}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterAttendant} onValueChange={setFilterAttendant}>
+            <SelectTrigger className="w-[200px] h-9 text-sm"><SelectValue placeholder="Atendente" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os atendentes</SelectItem>
+              <SelectItem value="none">Sem atendente</SelectItem>
+              {adminUsers.map(u => (
+                <SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {isLoading ? (

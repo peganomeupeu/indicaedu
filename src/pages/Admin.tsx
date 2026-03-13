@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -35,6 +35,8 @@ const Admin = () => {
   const [filterUser, setFilterUser] = useState<string>('all');
   const [filterMonth, setFilterMonth] = useState<string>('all');
   const [filterYear, setFilterYear] = useState<string>('all');
+  const [filterAttendant, setFilterAttendant] = useState<string>('all');
+  const [filterRdStation, setFilterRdStation] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -65,21 +67,36 @@ const Admin = () => {
 
   const adminUsers = allUsers.filter(u => u.role === 'admin');
 
-  const filtered = referrals.filter(r => {
-    if (filterCourse !== 'all' && r.course !== filterCourse) return false;
-    if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-    if (filterUser !== 'all' && r.headhunter_name !== filterUser) return false;
-    if (filterMonth !== 'all' || filterYear !== 'all') {
-      const d = new Date(r.created_at);
-      if (filterMonth !== 'all' && d.getMonth() + 1 !== Number(filterMonth)) return false;
-      if (filterYear !== 'all' && d.getFullYear() !== Number(filterYear)) return false;
-    }
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return referrals.filter(r => {
+      if (filterCourse !== 'all' && r.course !== filterCourse) return false;
+      if (filterStatus !== 'all' && r.status !== filterStatus) return false;
+      if (filterUser !== 'all' && r.headhunter_name !== filterUser) return false;
+      if (filterMonth !== 'all' || filterYear !== 'all') {
+        const d = new Date(r.created_at);
+        if (filterMonth !== 'all' && d.getMonth() + 1 !== Number(filterMonth)) return false;
+        if (filterYear !== 'all' && d.getFullYear() !== Number(filterYear)) return false;
+      }
+      if (filterAttendant !== 'all') {
+        if (filterAttendant === 'none') {
+          if ((r as any).attended_by) return false;
+        } else {
+          if ((r as any).attended_by !== filterAttendant) return false;
+        }
+      }
+      if (filterRdStation !== 'all') {
+        const sent = (r as any).rd_station_sent ?? false;
+        if (filterRdStation === 'yes' && !sent) return false;
+        if (filterRdStation === 'no' && sent) return false;
+      }
+      return true;
+    });
+  }, [referrals, filterCourse, filterStatus, filterUser, filterMonth, filterYear, filterAttendant, filterRdStation]);
 
-  const totalReferrals = referrals.length;
-  const totalQualified = referrals.filter(r => r.status === 'qualificado' || r.status === 'inscrito' || r.status === 'nao_convertido').length;
-  const totalEnrolled = referrals.filter(r => r.status === 'inscrito').length;
+  // KPIs based on filtered data
+  const totalReferrals = filtered.length;
+  const totalQualified = filtered.filter(r => r.status === 'qualificado' || r.status === 'inscrito' || r.status === 'nao_convertido').length;
+  const totalEnrolled = filtered.filter(r => r.status === 'inscrito').length;
 
   const toggleExpand = (id: string) => {
     setExpandedCards(prev => {
@@ -141,7 +158,7 @@ const Admin = () => {
     const rows = exportData.map(r => [
       r.referred_name, r.referred_email, r.referred_phone, r.referred_company,
       r.referred_position, r.course, STATUS_LABELS[r.status as ReferralStatus],
-      r.headhunter_name || '', r.created_at, r.rd_station_sent ? 'Sim' : 'Não',
+      r.headhunter_name || '', r.created_at, (r as any).rd_station_sent ? 'Sim' : 'Não',
     ]);
     const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -223,7 +240,7 @@ const Admin = () => {
           </div>
         </div>
 
-        {/* KPIs */}
+        {/* KPIs - synced with filters */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <StatCard title="Total Indicações" value={totalReferrals} icon={Users} />
           <StatCard title="Qualificados" value={totalQualified} icon={UserCheck} />
@@ -270,6 +287,22 @@ const Admin = () => {
               {uniqueHeadhunters.map(name => (<SelectItem key={name} value={name!}>{name}</SelectItem>))}
             </SelectContent>
           </Select>
+          <Select value={filterAttendant} onValueChange={setFilterAttendant}>
+            <SelectTrigger className="w-[170px] h-9 text-sm"><SelectValue placeholder="Atendente" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os atendentes</SelectItem>
+              <SelectItem value="none">Sem atendente</SelectItem>
+              {adminUsers.map(u => (<SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={filterRdStation} onValueChange={setFilterRdStation}>
+            <SelectTrigger className="w-[140px] h-9 text-sm"><SelectValue placeholder="RD Station" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">RD: Todos</SelectItem>
+              <SelectItem value="yes">Enviado</SelectItem>
+              <SelectItem value="no">Não enviado</SelectItem>
+            </SelectContent>
+          </Select>
           <div className="flex items-center gap-1 ml-auto">
             <Button variant={viewMode === 'cards' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('cards')}>Cards</Button>
             <Button variant={viewMode === 'table' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('table')}>Tabela</Button>
@@ -292,7 +325,7 @@ const Admin = () => {
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
         ) : viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+          <div className="space-y-2 mb-8">
             {filtered.map(r => {
               const isExpanded = expandedCards.has(r.id);
               const isSelected = selectedIds.has(r.id);
@@ -302,15 +335,23 @@ const Admin = () => {
                   <div className="p-4">
                     <div className="flex items-start gap-3">
                       <Checkbox checked={isSelected} onCheckedChange={() => toggleSelect(r.id)} className="mt-1" />
-                      <div className="flex-1 min-w-0">
+                      <div
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => toggleExpand(r.id)}
+                      >
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-sm font-semibold text-foreground truncate">{r.referred_name}</p>
-                          <StatusBadge status={r.status as ReferralStatus} />
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status={r.status as ReferralStatus} />
+                            {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                          </div>
                         </div>
                         <p className="text-xs text-muted-foreground">{r.referred_position}</p>
                         <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                           <span>📌 {r.headhunter_name}</span>
                           <span>📅 {format(new Date(r.created_at), "dd/MM/yy", { locale: ptBR })}</span>
+                          {attendedUser && <span>🎧 {attendedUser.full_name}</span>}
+                          {(r as any).rd_station_sent && <span className="text-success">✓ RD</span>}
                         </div>
                       </div>
                     </div>
@@ -354,11 +395,6 @@ const Admin = () => {
                         </div>
                       </div>
                     )}
-
-                    <button onClick={() => toggleExpand(r.id)} className="flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
-                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      {isExpanded ? 'Recolher' : 'Detalhes'}
-                    </button>
                   </div>
                 </div>
               );
