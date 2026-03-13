@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -6,6 +7,14 @@ import { ReferralStatus, POINTS_CONFIG } from '@/types/referral';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, UserCheck, GraduationCap, TrendingUp, Target } from 'lucide-react';
+
+const STATUS_SORT_ORDER: Record<string, number> = {
+  inscrito: 0,
+  qualificado: 1,
+  indicado: 2,
+  nao_qualificado: 3,
+  nao_convertido: 4,
+};
 
 interface HeadhunterDetailSheetProps {
   open: boolean;
@@ -23,6 +32,18 @@ interface HeadhunterDetailSheetProps {
 
 export function HeadhunterDetailSheet({ open, onOpenChange, user }: HeadhunterDetailSheetProps) {
   const { data: referralsList = [], isLoading } = useHeadhunterReferrals(user?.name ?? null);
+
+  const sortedReferrals = useMemo(() => {
+    return [...referralsList].sort((a, b) => {
+      // First by date descending
+      const dateCompare = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (dateCompare !== 0) return dateCompare;
+      // Then by status priority
+      const aOrder = STATUS_SORT_ORDER[a.status] ?? 99;
+      const bOrder = STATUS_SORT_ORDER[b.status] ?? 99;
+      return aOrder - bOrder;
+    });
+  }, [referralsList]);
 
   if (!user) return null;
 
@@ -82,11 +103,11 @@ export function HeadhunterDetailSheet({ open, onOpenChange, user }: HeadhunterDe
             <div className="flex justify-center py-6">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
             </div>
-          ) : referralsList.length === 0 ? (
+          ) : sortedReferrals.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">Nenhuma indicação encontrada</p>
           ) : (
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {referralsList.map(r => (
+              {sortedReferrals.map(r => (
                 <div key={r.id} className="bg-muted/30 rounded-lg p-3 border border-border">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-sm font-medium text-foreground">{r.referred_name}</p>
