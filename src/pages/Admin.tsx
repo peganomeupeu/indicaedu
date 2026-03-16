@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AppLayout } from '@/components/AppLayout';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -38,6 +39,7 @@ const Admin = () => {
   const [filterAttendant, setFilterAttendant] = useState<string>('all');
   const [filterRdStation, setFilterRdStation] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
+  const [showReferrals, setShowReferrals] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [newCourseName, setNewCourseName] = useState('');
@@ -321,11 +323,19 @@ const Admin = () => {
           <span className="text-xs text-muted-foreground ml-auto">{filtered.length} registro(s)</span>
         </div>
 
-        {/* Referrals */}
+        {/* Referrals - collapsible section */}
+        <Collapsible open={showReferrals} onOpenChange={setShowReferrals}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full flex items-center justify-between mb-3 h-10">
+              <span className="text-sm font-semibold">Indicações ({filtered.length})</span>
+              {showReferrals ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
         ) : viewMode === 'cards' ? (
-          <div className="space-y-2 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
             {filtered.map(r => {
               const isExpanded = expandedCards.has(r.id);
               const isSelected = selectedIds.has(r.id);
@@ -450,6 +460,8 @@ const Admin = () => {
             </div>
           </div>
         )}
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Delete Referrals by Date Range */}
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden mb-8">
