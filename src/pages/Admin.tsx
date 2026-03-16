@@ -321,11 +321,19 @@ const Admin = () => {
           <span className="text-xs text-muted-foreground ml-auto">{filtered.length} registro(s)</span>
         </div>
 
-        {/* Referrals */}
+        {/* Referrals - collapsible section */}
+        <Collapsible open={showReferrals} onOpenChange={setShowReferrals}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full flex items-center justify-between mb-3 h-10">
+              <span className="text-sm font-semibold">Indicações ({filtered.length})</span>
+              {showReferrals ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
         ) : viewMode === 'cards' ? (
-          <div className="space-y-2 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
             {filtered.map(r => {
               const isExpanded = expandedCards.has(r.id);
               const isSelected = selectedIds.has(r.id);
