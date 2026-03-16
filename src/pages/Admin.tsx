@@ -39,6 +39,7 @@ const Admin = () => {
   const [filterAttendant, setFilterAttendant] = useState<string>('all');
   const [filterRdStation, setFilterRdStation] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
+  const [showReferrals, setShowReferrals] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [newCourseName, setNewCourseName] = useState('');
