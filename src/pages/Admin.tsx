@@ -460,6 +460,8 @@ const Admin = () => {
             </div>
           </div>
         )}
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Delete Referrals by Date Range */}
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden mb-8">
