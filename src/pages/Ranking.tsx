@@ -152,6 +152,10 @@ const Ranking = () => {
                             <p className="text-xs text-muted-foreground">indicações</p>
                           </div>
                           <div className="text-center">
+                            <p className="text-sm font-semibold text-foreground">{user.qualified}</p>
+                            <p className="text-xs text-muted-foreground">qualificados</p>
+                          </div>
+                          <div className="text-center">
                             <p className="text-sm font-semibold text-foreground">{user.enrolled}</p>
                             <p className="text-xs text-muted-foreground">inscritos</p>
                           </div>
