@@ -190,7 +190,7 @@ const Ranking = () => {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.enrolled} inscritos</p>
+                        <p className="text-xs text-muted-foreground">{user.referrals} indicações · {user.qualified} qualificados · {user.enrolled} inscritos</p>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-primary">{user.points}</p>
