@@ -38,6 +38,7 @@ const Admin = () => {
   const [filterYear, setFilterYear] = useState<string>('all');
   const [filterAttendant, setFilterAttendant] = useState<string>('all');
   const [filterRdStation, setFilterRdStation] = useState<string>('all');
+  const [searchName, setSearchName] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
   const [showReferrals, setShowReferrals] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -91,9 +92,13 @@ const Admin = () => {
         if (filterRdStation === 'yes' && !sent) return false;
         if (filterRdStation === 'no' && sent) return false;
       }
+      if (searchName.trim()) {
+        const term = searchName.trim().toLowerCase();
+        if (!r.referred_name.toLowerCase().includes(term)) return false;
+      }
       return true;
     });
-  }, [referrals, filterCourse, filterStatus, filterUser, filterMonth, filterYear, filterAttendant, filterRdStation]);
+  }, [referrals, filterCourse, filterStatus, filterUser, filterMonth, filterYear, filterAttendant, filterRdStation, searchName]);
 
   // KPIs based on filtered data
   const totalReferrals = filtered.length;
@@ -309,6 +314,16 @@ const Admin = () => {
             <Button variant={viewMode === 'cards' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('cards')}>Cards</Button>
             <Button variant={viewMode === 'table' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('table')}>Tabela</Button>
           </div>
+        </div>
+
+        {/* Search by name */}
+        <div className="mb-3">
+          <Input
+            placeholder="Pesquisar indicação por nome..."
+            value={searchName}
+            onChange={e => setSearchName(e.target.value)}
+            className="max-w-sm"
+          />
         </div>
 
         {/* Select all */}
