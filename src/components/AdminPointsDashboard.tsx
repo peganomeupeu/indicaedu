@@ -23,9 +23,14 @@ const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 type SortKey = 'total' | 'indicado' | 'qualificado' | 'inscrito' | 'referrals';
 
+interface UserProfile {
+  id: string;
+  full_name: string;
+  avatar_url?: string | null;
+}
+
 interface Props {
-  /** Profiles map for resolving headhunter names */
-  profiles?: Map<string, { name: string; avatar_url: string | null }>;
+  profiles: UserProfile[];
 }
 
 export function AdminPointsDashboard({ profiles }: Props) {
