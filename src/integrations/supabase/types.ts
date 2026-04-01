@@ -69,6 +69,7 @@ export type Database = {
           id: string
           new_status: Database["public"]["Enums"]["referral_status"]
           old_status: Database["public"]["Enums"]["referral_status"] | null
+          pontos_gerados: number
           referral_id: string
         }
         Insert: {
@@ -77,6 +78,7 @@ export type Database = {
           id?: string
           new_status: Database["public"]["Enums"]["referral_status"]
           old_status?: Database["public"]["Enums"]["referral_status"] | null
+          pontos_gerados?: number
           referral_id: string
         }
         Update: {
@@ -85,6 +87,7 @@ export type Database = {
           id?: string
           new_status?: Database["public"]["Enums"]["referral_status"]
           old_status?: Database["public"]["Enums"]["referral_status"] | null
+          pontos_gerados?: number
           referral_id?: string
         }
         Relationships: [
@@ -207,6 +210,7 @@ export type Database = {
           total_inscribed: number
           total_nao_convertido: number
           total_nao_qualificado: number
+          total_points: number
           total_referrals: number
         }[]
       }
