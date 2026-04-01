@@ -62,19 +62,13 @@ export function AdminPointsDashboard({ profiles }: Props) {
 
     return Array.from(map.entries()).map(([id, events]) => {
       const bd = computeBreakdown(events);
-      const rankUser = ranking.find(r => {
-        // Match by name from profiles or ranking
-        return true; // we'll resolve below
-      });
-
-      // Try to get name from events or profiles
       const profileInfo = profiles.find(p => p.id === id);
       const name = profileInfo?.full_name ?? id;
       const avatar_url = profileInfo?.avatar_url ?? null;
 
       return { headhunter_id: id, name, avatar_url, breakdown: bd, events };
     });
-  }, [allEvents, ranking, profiles]);
+  }, [allEvents, profiles]);
 
   // Sort
   const sorted = useMemo(() => {
