@@ -83,12 +83,12 @@ export const COURSES = [
   'Coaching Executivo',
 ];
 
-export const POINTS_CONFIG: Record<ReferralStatus, number> = {
+export const POINTS_CONFIG: Record<string, number> = {
   indicado: 10,
-  qualificado: 30,
-  inscrito: 50,
-  nao_convertido: 30,
-  nao_qualificado: 10,
+  qualificado: 20,
+  inscrito: 20,
+  nao_convertido: 0,
+  nao_qualificado: 0,
 };
 
 export const POSITION_OPTIONS = [
