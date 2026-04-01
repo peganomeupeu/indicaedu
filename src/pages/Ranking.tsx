@@ -87,15 +87,15 @@ const Ranking = () => {
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-info" />
-              <span className="text-sm text-muted-foreground">Indicado: <strong className="text-foreground">{POINTS_CONFIG.indicado} pts</strong></span>
+              <span className="text-sm text-muted-foreground">Indicação criada: <strong className="text-foreground">{POINTS_CONFIG.indicado} pts</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-warning" />
-              <span className="text-sm text-muted-foreground">Qualificado: <strong className="text-foreground">{POINTS_CONFIG.qualificado} pts</strong></span>
+              <span className="text-sm text-muted-foreground">→ Qualificado: <strong className="text-foreground">+{POINTS_CONFIG.qualificado} pts</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-success" />
-              <span className="text-sm text-muted-foreground">Inscrito: <strong className="text-foreground">{POINTS_CONFIG.inscrito} pts</strong></span>
+              <span className="text-sm text-muted-foreground">→ Inscrito: <strong className="text-foreground">+{POINTS_CONFIG.inscrito} pts</strong></span>
             </div>
           </div>
         </div>
