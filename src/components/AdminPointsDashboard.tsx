@@ -344,4 +344,4 @@ function CrossMonthView({ events, month, year }: { events: PointsEvent[]; month:
   );
 }
 
-const MONTHS_REF = MONTHS;
+
