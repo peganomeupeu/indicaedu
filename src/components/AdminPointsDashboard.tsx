@@ -68,8 +68,8 @@ export function AdminPointsDashboard({ profiles }: Props) {
       });
 
       // Try to get name from events or profiles
-      const profileInfo = profiles?.get(id);
-      const name = profileInfo?.name ?? ranking.find(r => r.name)?.name ?? id;
+      const profileInfo = profiles.find(p => p.id === id);
+      const name = profileInfo?.full_name ?? id;
       const avatar_url = profileInfo?.avatar_url ?? null;
 
       return { headhunter_id: id, name, avatar_url, breakdown: bd, events };
