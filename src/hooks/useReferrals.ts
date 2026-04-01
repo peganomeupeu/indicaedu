@@ -124,24 +124,47 @@ export function useMyStats(month?: number, year?: number) {
     queryKey: ['my-stats', profile?.id, month, year],
     enabled: !!profile,
     queryFn: async () => {
-      let query = supabase
+      // Get referral counts (based on creation date)
+      let refQuery = supabase
         .from('referrals')
         .select('status, created_at')
         .eq('headhunter_id', profile!.id);
       if (month && year) {
         const start = new Date(year, month - 1, 1).toISOString();
         const end = new Date(year, month, 0, 23, 59, 59, 999).toISOString();
-        query = query.gte('created_at', start).lte('created_at', end);
+        refQuery = refQuery.gte('created_at', start).lte('created_at', end);
       }
-      const { data, error } = await query;
-      if (error) throw error;
-      const total = data.length;
-      const qualified = data.filter(r => r.status === 'qualificado' || r.status === 'inscrito' || r.status === 'nao_convertido').length;
-      const enrolled = data.filter(r => r.status === 'inscrito').length;
-      const points = data.reduce((acc, r) => {
-        const status = r.status as ReferralStatus;
-        return acc + (POINTS_CONFIG[status] ?? 0);
-      }, 0);
+      const { data: refData, error: refError } = await refQuery;
+      if (refError) throw refError;
+
+      const total = refData.length;
+      const qualified = refData.filter(r => r.status === 'qualificado' || r.status === 'inscrito' || r.status === 'nao_convertido').length;
+      const enrolled = refData.filter(r => r.status === 'inscrito').length;
+
+      // Get points from history (based on event date)
+      const { data: myReferrals, error: myRefError } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('headhunter_id', profile!.id);
+      if (myRefError) throw myRefError;
+
+      const referralIds = myReferrals.map(r => r.id);
+      let points = 0;
+      if (referralIds.length > 0) {
+        let histQuery = supabase
+          .from('referral_status_history')
+          .select('pontos_gerados, changed_at')
+          .in('referral_id', referralIds);
+        if (month && year) {
+          const start = new Date(year, month - 1, 1).toISOString();
+          const end = new Date(year, month, 0, 23, 59, 59, 999).toISOString();
+          histQuery = histQuery.gte('changed_at', start).lte('changed_at', end);
+        }
+        const { data: histData, error: histError } = await histQuery;
+        if (histError) throw histError;
+        points = (histData ?? []).reduce((acc, h) => acc + (h.pontos_gerados ?? 0), 0);
+      }
+
       return {
         total_referrals: total,
         total_inscribed: qualified,
@@ -163,27 +186,15 @@ export function useRanking(month?: number, year?: number) {
       });
       if (error) throw error;
       return (data ?? []).map((u: any, i: number) => {
-        const total = Number(u.total_referrals);
-        const enrolled = Number(u.total_enrolled);
-        const qualified = Number(u.total_inscribed);
-        const naoConvertido = Number(u.total_nao_convertido);
-        const naoQualificado = Number(u.total_nao_qualificado);
-        const indicado = total - enrolled - qualified - naoConvertido - naoQualificado;
-        const points =
-          indicado * POINTS_CONFIG.indicado +
-          qualified * POINTS_CONFIG.qualificado +
-          enrolled * POINTS_CONFIG.inscrito +
-          naoConvertido * POINTS_CONFIG.nao_convertido +
-          naoQualificado * POINTS_CONFIG.nao_qualificado;
         return {
           name: u.headhunter_name,
-          referrals: total,
-          enrolled,
-          qualified,
-          naoConvertido,
-          naoQualificado,
+          referrals: Number(u.total_referrals),
+          enrolled: Number(u.total_enrolled),
+          qualified: Number(u.total_inscribed),
+          naoConvertido: Number(u.total_nao_convertido),
+          naoQualificado: Number(u.total_nao_qualificado),
           avatar_url: u.avatar_url ?? null,
-          points,
+          points: Number(u.total_points ?? 0),
           rank: i + 1,
         };
       });
