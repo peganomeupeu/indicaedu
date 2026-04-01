@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Download, Target, Users, UserCheck, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAllPointsHistory, computeBreakdown, PointsEvent } from '@/hooks/usePointsHistory';
-import { useRanking } from '@/hooks/useReferrals';
+
 import { PointsBreakdownCard } from '@/components/PointsBreakdownCard';
 import { PointsTimeline } from '@/components/PointsTimeline';
 import { StatCard } from '@/components/StatCard';
