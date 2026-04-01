@@ -45,7 +45,7 @@ export function AdminPointsDashboard({ profiles }: Props) {
   const yearNum = year === 'all' ? undefined : Number(year);
 
   const { data: allEvents = [], isLoading } = useAllPointsHistory(monthNum, yearNum);
-  const { data: ranking = [] } = useRanking(monthNum, yearNum);
+  
 
   const monthLabel = monthNum && yearNum ? `${MONTHS[monthNum - 1]} ${yearNum}` : 'Todos os períodos';
 
