@@ -643,6 +643,12 @@ const Admin = () => {
         </AlertDialog>
 
         {/* Ranking */}
+        {/* Points Dashboard */}
+        <div className="mb-8">
+          <AdminPointsDashboard profiles={allUsers.map(u => ({ id: u.id, full_name: u.full_name, avatar_url: u.avatar_url }))} />
+        </div>
+
+        {/* Simple Ranking */}
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
             <h2 className="text-sm font-semibold text-foreground">Ranking de Headhunters</h2>
