@@ -205,6 +205,7 @@ export type Database = {
         Args: { p_month?: number; p_year?: number }
         Returns: {
           avatar_url: string
+          headhunter_id: string
           headhunter_name: string
           total_enrolled: number
           total_inscribed: number
