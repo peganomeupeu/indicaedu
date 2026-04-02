@@ -187,6 +187,7 @@ export function useRanking(month?: number, year?: number) {
       if (error) throw error;
       return (data ?? []).map((u: any, i: number) => {
         return {
+          headhunter_id: u.headhunter_id ?? '',
           name: u.headhunter_name,
           referrals: Number(u.total_referrals),
           enrolled: Number(u.total_enrolled),
