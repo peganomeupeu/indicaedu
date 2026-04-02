@@ -209,6 +209,8 @@ const Ranking = () => {
         open={!!selectedUser}
         onOpenChange={(open) => { if (!open) setSelectedUser(null); }}
         user={selectedUser}
+        month={monthNum}
+        year={yearNum}
       />
     </AppLayout>
   );

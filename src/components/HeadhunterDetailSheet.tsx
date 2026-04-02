@@ -3,7 +3,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useHeadhunterReferrals } from '@/hooks/useReferrals';
+import { useHeadhunterPointsHistory, computeBreakdown } from '@/hooks/usePointsHistory';
 import { ReferralStatus, POINTS_CONFIG } from '@/types/referral';
+import { PointsBreakdownCard } from '@/components/PointsBreakdownCard';
+import { PointsTimeline } from '@/components/PointsTimeline';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, UserCheck, GraduationCap, TrendingUp, Target } from 'lucide-react';
@@ -16,10 +19,18 @@ const STATUS_SORT_ORDER: Record<string, number> = {
   nao_convertido: 4,
 };
 
+const MONTHS = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
 interface HeadhunterDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  month?: number;
+  year?: number;
   user: {
+    headhunter_id?: string;
     name: string;
     referrals: number;
     enrolled: number;
@@ -30,15 +41,18 @@ interface HeadhunterDetailSheetProps {
   } | null;
 }
 
-export function HeadhunterDetailSheet({ open, onOpenChange, user }: HeadhunterDetailSheetProps) {
+export function HeadhunterDetailSheet({ open, onOpenChange, user, month, year }: HeadhunterDetailSheetProps) {
   const { data: referralsList = [], isLoading } = useHeadhunterReferrals(user?.name ?? null);
+  const { data: pointsEvents = [] } = useHeadhunterPointsHistory(user?.headhunter_id ?? null, month, year);
+
+  const breakdown = useMemo(() => computeBreakdown(pointsEvents), [pointsEvents]);
+
+  const monthLabel = month && year ? `${MONTHS[month - 1]} ${year}` : undefined;
 
   const sortedReferrals = useMemo(() => {
     return [...referralsList].sort((a, b) => {
-      // First by date descending
       const dateCompare = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       if (dateCompare !== 0) return dateCompare;
-      // Then by status priority
       const aOrder = STATUS_SORT_ORDER[a.status] ?? 99;
       const bOrder = STATUS_SORT_ORDER[b.status] ?? 99;
       return aOrder - bOrder;
@@ -90,11 +104,17 @@ export function HeadhunterDetailSheet({ open, onOpenChange, user }: HeadhunterDe
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2 bg-primary/10 rounded-lg p-3 mb-6">
-          <Target className="w-5 h-5 text-primary" />
-          <span className="text-2xl font-extrabold text-primary">{user.points}</span>
-          <span className="text-sm text-muted-foreground">pontos</span>
+        {/* Points Breakdown */}
+        <div className="mb-6">
+          <PointsBreakdownCard breakdown={breakdown} monthLabel={monthLabel} />
         </div>
+
+        {/* Points Timeline */}
+        {pointsEvents.length > 0 && (
+          <div className="mb-6">
+            <PointsTimeline events={pointsEvents} />
+          </div>
+        )}
 
         {/* Referral History */}
         <div>
