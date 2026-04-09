@@ -14,6 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaign_cancellations: {
+        Row: {
+          cancellations_as_finder: number
+          cancellations_as_responsible: number
+          created_at: string
+          headhunter_id: string
+          id: string
+          month: number
+          points: number
+          year: number
+        }
+        Insert: {
+          cancellations_as_finder?: number
+          cancellations_as_responsible?: number
+          created_at?: string
+          headhunter_id: string
+          id?: string
+          month: number
+          points?: number
+          year: number
+        }
+        Update: {
+          cancellations_as_finder?: number
+          cancellations_as_responsible?: number
+          created_at?: string
+          headhunter_id?: string
+          id?: string
+          month?: number
+          points?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_cancellations_headhunter_id_fkey"
+            columns: ["headhunter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_deadline_bonus: {
+        Row: {
+          created_at: string
+          headhunter_id: string
+          id: string
+          month: number
+          points: number
+          vacancies_on_time: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          headhunter_id: string
+          id?: string
+          month: number
+          points?: number
+          vacancies_on_time?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          headhunter_id?: string
+          id?: string
+          month?: number
+          points?: number
+          vacancies_on_time?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_deadline_bonus_headhunter_id_fkey"
+            columns: ["headhunter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_productivity: {
+        Row: {
+          created_at: string
+          headhunter_id: string
+          id: string
+          meta_percentage: number
+          month: number
+          points: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          headhunter_id: string
+          id?: string
+          meta_percentage?: number
+          month: number
+          points?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          headhunter_id?: string
+          id?: string
+          meta_percentage?: number
+          month?: number
+          points?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_productivity_headhunter_id_fkey"
+            columns: ["headhunter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_revenue: {
+        Row: {
+          created_at: string
+          headhunter_id: string
+          id: string
+          month: number
+          points: number
+          revenue_audens: number
+          revenue_one_outsourcing: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          headhunter_id: string
+          id?: string
+          month: number
+          points?: number
+          revenue_audens?: number
+          revenue_one_outsourcing?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          headhunter_id?: string
+          id?: string
+          month?: number
+          points?: number
+          revenue_audens?: number
+          revenue_one_outsourcing?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_revenue_headhunter_id_fkey"
+            columns: ["headhunter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           active: boolean
@@ -192,6 +350,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_campaign_ranking: {
+        Args: { p_month: number; p_year: number }
+        Returns: {
+          avatar_url: string
+          cancellation_points: number
+          deadline_points: number
+          headhunter_id: string
+          headhunter_name: string
+          productivity_points: number
+          referral_points: number
+          revenue_points: number
+          total_points: number
+        }[]
+      }
       get_login_stats: {
         Args: never
         Returns: {
