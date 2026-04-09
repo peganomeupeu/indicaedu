@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera, Columns3
+  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera, Columns3, Flag, Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { path: '/indicacoes', label: 'Indicações', icon: List },
     { path: '/pipeline', label: 'Pipeline', icon: Columns3 },
     { path: '/ranking', label: 'Ranking', icon: Trophy },
-    ...(isAdmin ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
+    ...(!isAdmin ? [{ path: '/minha-campanha', label: 'Minha Campanha', icon: Star }] : []),
+    ...(isAdmin ? [
+      { path: '/campanha', label: 'Campanha', icon: Flag },
+      { path: '/admin', label: 'Admin', icon: Shield },
+    ] : []),
   ];
 
   const initials = profile?.full_name
