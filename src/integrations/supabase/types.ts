@@ -327,6 +327,36 @@ export type Database = {
           },
         ]
       }
+      salesforce_sync_log: {
+        Row: {
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          records_synced: number
+          started_at: string
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          records_synced?: number
+          started_at?: string
+          status: string
+          sync_type: string
+        }
+        Update: {
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          records_synced?: number
+          started_at?: string
+          status?: string
+          sync_type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
