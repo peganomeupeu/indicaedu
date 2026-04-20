@@ -12,15 +12,11 @@ interface SalesforceToken {
 async function getSalesforceToken(): Promise<SalesforceToken> {
   const clientId = Deno.env.get("SALESFORCE_CLIENT_ID");
   const clientSecret = Deno.env.get("SALESFORCE_CLIENT_SECRET");
-  const username = Deno.env.get("SALESFORCE_USERNAME");
-  const password = Deno.env.get("SALESFORCE_PASSWORD");
   const loginUrl = Deno.env.get("SALESFORCE_LOGIN_URL") ?? "https://login.salesforce.com";
 
   const missing: string[] = [];
   if (!clientId) missing.push("SALESFORCE_CLIENT_ID");
   if (!clientSecret) missing.push("SALESFORCE_CLIENT_SECRET");
-  if (!username) missing.push("SALESFORCE_USERNAME");
-  if (!password) missing.push("SALESFORCE_PASSWORD");
   if (missing.length > 0) {
     throw new Error(
       `Missing Salesforce credentials: ${missing.join(", ")}. Add them as Edge Function secrets.`,
@@ -28,11 +24,9 @@ async function getSalesforceToken(): Promise<SalesforceToken> {
   }
 
   const body = new URLSearchParams({
-    grant_type: "password",
+    grant_type: "client_credentials",
     client_id: clientId!,
     client_secret: clientSecret!,
-    username: username!,
-    password: password!,
   });
 
   const response = await fetch(`${loginUrl}/services/oauth2/token`, {
