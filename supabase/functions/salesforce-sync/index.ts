@@ -1,6 +1,62 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
-import { getSalesforceToken } from "../salesforce-auth/index.ts";
+
+interface SalesforceToken {
+  access_token: string;
+  instance_url: string;
+  token_type: string;
+  issued_at: string;
+  signature: string;
+}
+
+async function getSalesforceToken(): Promise<SalesforceToken> {
+  const clientId = Deno.env.get("SALESFORCE_CLIENT_ID");
+  const clientSecret = Deno.env.get("SALESFORCE_CLIENT_SECRET");
+  const username = Deno.env.get("SALESFORCE_USERNAME");
+  const password = Deno.env.get("SALESFORCE_PASSWORD");
+  const loginUrl = Deno.env.get("SALESFORCE_LOGIN_URL") ?? "https://login.salesforce.com";
+
+  const missing: string[] = [];
+  if (!clientId) missing.push("SALESFORCE_CLIENT_ID");
+  if (!clientSecret) missing.push("SALESFORCE_CLIENT_SECRET");
+  if (!username) missing.push("SALESFORCE_USERNAME");
+  if (!password) missing.push("SALESFORCE_PASSWORD");
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing Salesforce credentials: ${missing.join(", ")}. Add them as Edge Function secrets.`,
+    );
+  }
+
+  const body = new URLSearchParams({
+    grant_type: "password",
+    client_id: clientId!,
+    client_secret: clientSecret!,
+    username: username!,
+    password: password!,
+  });
+
+  const response = await fetch(`${loginUrl}/services/oauth2/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    let errMsg = text;
+    try {
+      const json = JSON.parse(text);
+      errMsg = `${json.error}: ${json.error_description ?? "unknown error"}`;
+    } catch { /* keep text */ }
+    throw new Error(`Salesforce auth failed (${response.status}): ${errMsg}`);
+  }
+
+  const token = JSON.parse(text) as SalesforceToken;
+  if (!token.access_token || !token.instance_url) {
+    throw new Error("Salesforce returned an invalid token payload");
+  }
+  return token;
+}
 
 type SyncType = "productivity" | "revenue" | "deadline" | "cancellations" | "test";
 const ALL_TYPES: SyncType[] = ["productivity", "revenue", "deadline", "cancellations"];
