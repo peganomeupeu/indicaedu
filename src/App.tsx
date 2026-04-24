@@ -12,7 +12,7 @@ import Referrals from "./pages/Referrals";
 import Ranking from "./pages/Ranking";
 import Pipeline from "./pages/Pipeline";
 import Admin from "./pages/Admin";
-import AdminIntegrations from "./pages/AdminIntegrations";
+import AdminImport from "./pages/AdminImport";
 import ResetPassword from "./pages/ResetPassword";
 import Campaign from "./pages/Campaign";
 import MyCampaign from "./pages/MyCampaign";
@@ -37,7 +37,7 @@ const App = () => (
             <Route path="/ranking" element={<ProtectedRoute><Ranking /></ProtectedRoute>} />
             <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
-            <Route path="/admin/integracoes" element={<ProtectedRoute adminOnly><AdminIntegrations /></ProtectedRoute>} />
+            <Route path="/admin/importar-dados" element={<ProtectedRoute adminOnly><AdminImport /></ProtectedRoute>} />
             <Route path="/campanha" element={<ProtectedRoute adminOnly><Campaign /></ProtectedRoute>} />
             <Route path="/minha-campanha" element={<ProtectedRoute><MyCampaign /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
