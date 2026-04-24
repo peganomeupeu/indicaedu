@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera, Columns3, Flag, Star, Plug
+  LayoutDashboard, UserPlus, List, Trophy, Shield, LogOut, Menu, X, Pencil, Camera, Columns3, Flag, Star, Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ...(isAdmin ? [
       { path: '/campanha', label: 'Campanha', icon: Flag },
       { path: '/admin', label: 'Admin', icon: Shield },
-      { path: '/admin/integracoes', label: 'Integrações', icon: Plug },
+      { path: '/admin/importar-dados', label: 'Importar Dados', icon: Upload },
     ] : []),
   ];
 
