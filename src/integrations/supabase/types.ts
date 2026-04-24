@@ -55,6 +55,62 @@ export type Database = {
           },
         ]
       }
+      campaign_consultants: {
+        Row: {
+          cargo: string
+          consultant_name: string
+          created_at: string
+          id: string
+          meta_entrevistas_presenciais: number
+          meta_entrevistas_telefone: number
+          meta_entrevistas_video: number
+          meta_eventos_gerais: number
+          meta_placements_semanal: number
+          meta_placements_trimestral: number
+          meta_visitas: number
+          profile_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo: string
+          consultant_name: string
+          created_at?: string
+          id?: string
+          meta_entrevistas_presenciais?: number
+          meta_entrevistas_telefone?: number
+          meta_entrevistas_video?: number
+          meta_eventos_gerais?: number
+          meta_placements_semanal?: number
+          meta_placements_trimestral?: number
+          meta_visitas?: number
+          profile_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string
+          consultant_name?: string
+          created_at?: string
+          id?: string
+          meta_entrevistas_presenciais?: number
+          meta_entrevistas_telefone?: number
+          meta_entrevistas_video?: number
+          meta_eventos_gerais?: number
+          meta_placements_semanal?: number
+          meta_placements_trimestral?: number
+          meta_visitas?: number
+          profile_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_consultants_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_deadline_bonus: {
         Row: {
           created_at: string
@@ -326,36 +382,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      salesforce_sync_log: {
-        Row: {
-          error_message: string | null
-          finished_at: string | null
-          id: string
-          records_synced: number
-          started_at: string
-          status: string
-          sync_type: string
-        }
-        Insert: {
-          error_message?: string | null
-          finished_at?: string | null
-          id?: string
-          records_synced?: number
-          started_at?: string
-          status: string
-          sync_type: string
-        }
-        Update: {
-          error_message?: string | null
-          finished_at?: string | null
-          id?: string
-          records_synced?: number
-          started_at?: string
-          status?: string
-          sync_type?: string
-        }
-        Relationships: []
       }
       user_roles: {
         Row: {
